@@ -26,13 +26,6 @@ st.markdown("""
         background: linear-gradient(90deg, #764ba2, #667eea);
         transform: scale(1.02);
     }
-    .metric-card {
-        background: #1e2130;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-        border: 1px solid #2d3250;
-    }
     .section-header {
         background: linear-gradient(90deg, #667eea, #764ba2);
         padding: 10px 20px;
@@ -42,11 +35,11 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 20px;
     }
-    div[data-testid="stSidebarNav"] { display: none; }
-    .sidebar-title {
-        font-size: 1.2em;
-        font-weight: bold;
-        color: #667eea;
+    .upload-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -71,57 +64,14 @@ def get_col_types(df):
             cat_cols.append(col)
     return num_cols, cat_cols, date_cols
 
-# Main Header
-st.markdown("""
-<div style='text-align:center; padding: 20px 0;'>
-    <h1 style='color:#667eea;'>📊 AI Data Analyst Pro</h1>
-    <p style='color:#888; font-size:1.1em;'>Transform raw data into actionable insights</p>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ── FILE UPLOADER LOGIC (Main Screen vs Sidebar) ───────────────────
-# Pehle check karenge ki file uploaded hai ya nahi, uske hisab se layout decide hoga
-if st.session_state.df_cleaned is None:
-    # Jab file uploaded nahi hai, toh main screen par uploader dikhao
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Center aligning the file uploader using columns
-    col_left, col_mid, col_right = st.columns([1, 2, 1])
-    with col_mid:
-        st.markdown("<h2 style='text-align:centre;'>Upload CSV to get started</h2>",unsafe_allow_html=True)
-        uploaded_file= st.file_uploader("",type=["csv"])
-    if uploaded_file is not None:
-        st.session_state.df_cleaned = pd.read_csv(uploaded_file)
-        st.session_state.file_name = uploaded_file.name
-        st.rerun()
-        
-    # Welcome Information Cards below the uploader
+# Sidebar
+with st.sidebar:
+    st.markdown("### 📊 AI Data Analyst Pro")
+    st.markdown("*Transform raw data into actionable insights*")
     st.markdown("---")
-    c1, c2, c3 = st.columns(3)
-    c1.info("📋 Auto dataset overview")
-    c2.info("🧹 Clean missing values")
-    c3.info("📊 Interactive charts")
-    c4, c5, c6 = st.columns(3)
-    c4.info("🎯 Outlier detection")
-    c5.info("🔗 Correlation matrix")
-    c6.info("⬇️ Download cleaned data")
 
-else:
-    # Jab file upload ho chuki ho, tab sidebar me option aur navigation dikhao
-    with st.sidebar:
-        st.markdown('<p class="sidebar-title">📊 AI Data Analyst Pro</p>', unsafe_allow_html=True)
-        st.markdown("*Transform raw data into actionable insights*")
-        st.markdown("---")
-        
-        # Sidebar me file change karne ka option bhi rahega
-        uploaded_file = st.file_uploader("Change CSV File", type=["csv"])
-        if uploaded_file is not None and uploaded_file.name != st.session_state.file_name:
-            st.session_state.df_cleaned = pd.read_csv(uploaded_file)
-            st.session_state.file_name = uploaded_file.name
-            st.rerun()
-            
-        st.success(f"✅ Loaded: {st.session_state.file_name}")
+    if st.session_state.df_cleaned is not None:
+        st.success(f"✅ {st.session_state.file_name}")
         st.markdown("---")
         st.markdown("### 🧭 Navigation")
         section = st.radio("", [
@@ -139,32 +89,64 @@ else:
             "🎯 KPI Dashboard",
             "⬇️ Download"
         ])
+    else:
+        section = None
 
-    # ── APP SECTIONS LOGIC (Only runs if data is loaded) ───────────────────
+# Main Header
+st.markdown("""
+<div style='text-align:center; padding: 30px 0 10px 0;'>
+    <h1 style='color:#667eea;'>📊 AI Data Analyst Pro</h1>
+    <p style='color:#888; font-size:1.1em;'>Transform raw data into actionable insights</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Upload section — center mein
+if st.session_state.df_cleaned is None:
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("""
+        <div style='text-align:center; padding: 20px 0;'>
+            <h2 style='color:#ffffff;'>Upload CSV to get started</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        uploaded_file = st.file_uploader("", type=["csv"], label_visibility="collapsed")
+        if uploaded_file is not None:
+            st.session_state.df_cleaned = pd.read_csv(uploaded_file)
+            st.session_state.file_name = uploaded_file.name
+            st.rerun()
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    c1.info("📋 Auto dataset overview")
+    c2.info("🧹 Clean missing values")
+    c3.info("📊 Interactive charts")
+    c4, c5, c6 = st.columns(3)
+    c4.info("🎯 Outlier detection")
+    c5.info("🔗 Correlation matrix")
+    c6.info("⬇️ Download cleaned data")
+
+elif st.session_state.df_cleaned is not None:
     df = st.session_state.df_cleaned.copy()
     num_cols, cat_cols, date_cols = get_col_types(df)
 
     # ── OVERVIEW ──────────────────────────────────────
     if section == "📋 Overview":
         st.markdown('<div class="section-header">📋 Dataset Overview</div>', unsafe_allow_html=True)
-
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("🗂 Rows", df.shape[0])
         c2.metric("📊 Columns", df.shape[1])
         c3.metric("🔁 Duplicates", df.duplicated().sum())
         c4.metric("❓ Missing Values", df.isnull().sum().sum())
-
         st.markdown("---")
         n_rows = st.slider("Rows to preview", 5, 50, 10)
         st.dataframe(df.head(n_rows), use_container_width=True)
-
         with st.expander("👁️ View Full Dataset"):
             st.dataframe(df, use_container_width=True)
 
     # ── SCHEMA ────────────────────────────────────────
     elif section == "🔍 Schema Analysis":
         st.markdown('<div class="section-header">🔍 Schema Analysis</div>', unsafe_allow_html=True)
-
         col_info = pd.DataFrame({
             "Column": df.columns,
             "Type": df.dtypes.values,
@@ -178,12 +160,10 @@ else:
     # ── STATISTICAL SUMMARY ───────────────────────────
     elif section == "📊 Statistical Summary":
         st.markdown('<div class="section-header">📊 Statistical Summary</div>', unsafe_allow_html=True)
-
         st.subheader("Numeric Columns")
         st.dataframe(df[num_cols].describe().round(2), use_container_width=True)
-
         st.markdown("---")
-        st.subheader("📌 Categorical Columns Summary")
+        st.subheader("Categorical Columns Summary")
         if len(cat_cols) == 0:
             st.info("No categorical columns found")
         else:
@@ -206,23 +186,19 @@ else:
     # ── DATA QUALITY INDEX ────────────────────────────
     elif section == "📈 Data Quality Index":
         st.markdown('<div class="section-header">📈 Data Quality Index</div>', unsafe_allow_html=True)
-
         missing_score = 100 - (df.isnull().sum().sum() / (df.shape[0] * df.shape[1]) * 100)
         duplicate_score = 100 - (df.duplicated().sum() / df.shape[0] * 100)
         health_score = round((missing_score + duplicate_score) / 2, 1)
-
         if health_score >= 80:
             color = "🟢"; status = "Healthy Dataset"
         elif health_score >= 50:
             color = "🟡"; status = "Needs Attention"
         else:
             color = "🔴"; status = "Poor Quality"
-
         c1, c2, c3 = st.columns(3)
         c1.metric(f"{color} Overall Score", f"{health_score}/100", status)
         c2.metric("Missing Score", f"{round(missing_score, 1)}/100")
         c3.metric("Duplicate Score", f"{round(duplicate_score, 1)}/100")
-
         st.markdown("---")
         fig = px.bar(
             x=["Missing Score", "Duplicate Score", "Overall Score"],
@@ -239,9 +215,7 @@ else:
     # ── MISSING VALUE HANDLER ─────────────────────────
     elif section == "🧹 Missing Value Handler":
         st.markdown('<div class="section-header">🧹 Missing Value Handler</div>', unsafe_allow_html=True)
-
         missing_cols = df.columns[df.isnull().any()].tolist()
-
         if len(missing_cols) == 0:
             st.success("✅ No missing values found!")
         else:
@@ -276,7 +250,6 @@ else:
     # ── ADVANCED CLEANING ─────────────────────────────
     elif section == "🔧 Advanced Cleaning":
         st.markdown('<div class="section-header">🔧 Advanced Cleaning</div>', unsafe_allow_html=True)
-
         st.subheader("🔁 Duplicate Row Remover")
         dup_count = df.duplicated().sum()
         if dup_count == 0:
@@ -291,20 +264,14 @@ else:
                 after = len(st.session_state.df_cleaned)
                 st.success(f"✅ Removed {before - after} duplicate rows - {after} rows remaining")
                 st.rerun()
-
         st.markdown("---")
         st.subheader("🔄 Data Type Converter")
-        st.info("Fix columns that have wrong data types")
-
         type_col = st.selectbox("Select column to convert", df.columns.tolist(), key="type_col")
-        current_type = str(df[type_col].dtype)
-        st.write(f"**Current type:** `{current_type}`")
+        st.write(f"**Current type:** `{str(df[type_col].dtype)}`")
         st.write(f"**Sample values:** {df[type_col].dropna().head(3).tolist()}")
-
         target_type = st.radio("Convert to",
             ["Numeric", "Text/String", "DateTime", "Category"],
             horizontal=True, key="target_type")
-
         if st.button("Convert Type"):
             try:
                 if target_type == "Numeric":
@@ -321,7 +288,6 @@ else:
                 st.rerun()
             except Exception as e:
                 st.error(f"❌ Conversion failed: {e}")
-
         st.markdown("---")
         st.subheader("✂️ Whitespace Cleaner")
         if len(cat_cols) == 0:
@@ -339,7 +305,6 @@ else:
     # ── OUTLIER DETECTION ─────────────────────────────
     elif section == "🎯 Outlier Detection":
         st.markdown('<div class="section-header">🎯 Outlier Detection</div>', unsafe_allow_html=True)
-
         if len(num_cols) == 0:
             st.warning("No numeric columns found")
         else:
@@ -380,7 +345,6 @@ else:
     # ── CORRELATION MATRIX ────────────────────────────
     elif section == "🔗 Correlation Matrix":
         st.markdown('<div class="section-header">🔗 Correlation Matrix</div>', unsafe_allow_html=True)
-
         if len(num_cols) < 2:
             st.warning("Need at least 2 numeric columns")
         else:
@@ -410,7 +374,6 @@ else:
     # ── COLUMN DRILL DOWN ─────────────────────────────
     elif section == "🔎 Column Drill Down":
         st.markdown('<div class="section-header">🔎 Column Drill Down</div>', unsafe_allow_html=True)
-
         selected = st.selectbox("Select any column", df.columns.tolist())
         st.markdown("---")
         c1, c2, c3, c4 = st.columns(4)
@@ -461,7 +424,6 @@ else:
     # ── GROUP BY ANALYSIS ─────────────────────────────
     elif section == "📊 Group By Analysis":
         st.markdown('<div class="section-header">📊 Group By Analysis</div>', unsafe_allow_html=True)
-
         if len(cat_cols) == 0:
             st.warning("No categorical columns found for grouping")
         elif len(num_cols) == 0:
@@ -475,14 +437,11 @@ else:
             with c3:
                 agg_func = st.selectbox("Aggregation",
                     ["Mean", "Sum", "Count", "Max", "Min", "Median"], key="agg_func")
-
             agg_map = {"Mean": "mean", "Sum": "sum", "Count": "count",
                       "Max": "max", "Min": "min", "Median": "median"}
-
             result = df.groupby(group_col)[value_col].agg(agg_map[agg_func]).reset_index()
             result.columns = [group_col, f"{agg_func} of {value_col}"]
             result = result.sort_values(f"{agg_func} of {value_col}", ascending=False)
-
             st.markdown("---")
             c1, c2 = st.columns(2)
             with c1:
@@ -496,7 +455,6 @@ else:
                     fig = px.pie(result, names=group_col, values=f"{agg_func} of {value_col}",
                                 title=f"{agg_func} of {value_col} by {group_col}")
                 st.plotly_chart(fig, use_container_width=True)
-
             st.markdown("---")
             top = result.iloc[0]
             bottom = result.iloc[-1]
@@ -506,10 +464,8 @@ else:
     # ── SMART CHART ENGINE ────────────────────────────
     elif section == "📊 Smart Chart Engine":
         st.markdown('<div class="section-header">📊 Smart Chart Engine</div>', unsafe_allow_html=True)
-
         all_cols = df.columns.tolist()
         analysis_type = st.radio("Analysis Type", ["Single Column", "Two Columns"], horizontal=True)
-
         if analysis_type == "Single Column":
             col_selected = st.selectbox("Select Column", all_cols)
             if col_selected in num_cols:
@@ -533,7 +489,6 @@ else:
                 else:
                     fig = px.pie(vc, names=col_selected, values="Count", title=f"Distribution - {col_selected}")
             st.plotly_chart(fig, use_container_width=True)
-
         else:
             col_x = st.selectbox("Select X axis", all_cols, key="x_col")
             if col_x in date_cols:
@@ -571,7 +526,6 @@ else:
     # ── KPI DASHBOARD ─────────────────────────────────
     elif section == "🎯 KPI Dashboard":
         st.markdown('<div class="section-header">🎯 KPI Dashboard</div>', unsafe_allow_html=True)
-
         if len(num_cols) == 0:
             st.warning("No numeric columns found")
         else:
@@ -594,12 +548,10 @@ else:
     # ── DOWNLOAD ──────────────────────────────────────
     elif section == "⬇️ Download":
         st.markdown('<div class="section-header">⬇️ Download</div>', unsafe_allow_html=True)
-
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Rows", df.shape[0])
         c2.metric("Total Columns", df.shape[1])
         c3.metric("Remaining Missing", df.isnull().sum().sum())
-
         st.markdown("---")
         st.subheader("📥 Download Cleaned CSV")
         csv = df.to_csv(index=False).encode('utf-8')
@@ -609,24 +561,17 @@ else:
             file_name="cleaned_dataset.csv",
             mime="text/csv"
         )
-
         st.markdown("---")
         st.subheader("📄 Download PDF Report")
-
         if st.button("Generate PDF Report"):
             from fpdf import FPDF
-
             pdf = FPDF()
             pdf.add_page()
-
-            # Title
             pdf.set_font("Arial", "B", 18)
             pdf.cell(0, 12, "AI Data Analyst Pro - Report", ln=True, align="C")
             pdf.set_font("Arial", "", 10)
             pdf.cell(0, 8, f"Dataset: {st.session_state.file_name}", ln=True, align="C")
             pdf.ln(5)
-
-            # Dataset Summary
             pdf.set_fill_color(102, 126, 234)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Arial", "B", 13)
@@ -639,12 +584,9 @@ else:
             pdf.cell(0, 7, f"Duplicate Rows: {df.duplicated().sum()}", ln=True)
             pdf.cell(0, 7, f"Total Missing Values: {df.isnull().sum().sum()}", ln=True)
             pdf.ln(5)
-
-            # Data Quality
             missing_score = 100 - (df.isnull().sum().sum() / (df.shape[0] * df.shape[1]) * 100)
             duplicate_score = 100 - (df.duplicated().sum() / df.shape[0] * 100)
             health_score = round((missing_score + duplicate_score) / 2, 1)
-
             pdf.set_fill_color(102, 126, 234)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Arial", "B", 13)
@@ -656,8 +598,6 @@ else:
             pdf.cell(0, 7, f"Missing Score: {round(missing_score, 1)}/100", ln=True)
             pdf.cell(0, 7, f"Duplicate Score: {round(duplicate_score, 1)}/100", ln=True)
             pdf.ln(5)
-
-            # Schema
             pdf.set_fill_color(102, 126, 234)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Arial", "B", 13)
@@ -669,11 +609,8 @@ else:
                 missing = df[col].isnull().sum()
                 missing_pct = round(missing/len(df)*100, 1)
                 unique = df[col].nunique()
-                line = f"{col} | Type: {df[col].dtype} | Missing: {missing} ({missing_pct}%) | Unique: {unique}"
-                pdf.cell(0, 6, line, ln=True)
+                pdf.cell(0, 6, f"{col} | Type: {df[col].dtype} | Missing: {missing} ({missing_pct}%) | Unique: {unique}", ln=True)
             pdf.ln(5)
-
-            # Statistical Summary
             pdf.set_fill_color(102, 126, 234)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Arial", "B", 13)
@@ -682,11 +619,8 @@ else:
             pdf.set_font("Arial", "", 9)
             pdf.ln(3)
             for col in num_cols:
-                line = f"{col} | Mean: {round(df[col].mean(),2)} | Median: {round(df[col].median(),2)} | Std: {round(df[col].std(),2)} | Min: {round(df[col].min(),2)} | Max: {round(df[col].max(),2)}"
-                pdf.cell(0, 6, line, ln=True)
+                pdf.cell(0, 6, f"{col} | Mean: {round(df[col].mean(),2)} | Median: {round(df[col].median(),2)} | Std: {round(df[col].std(),2)} | Min: {round(df[col].min(),2)} | Max: {round(df[col].max(),2)}", ln=True)
             pdf.ln(5)
-
-            # Outliers
             pdf.set_fill_color(102, 126, 234)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Arial", "B", 13)
@@ -701,8 +635,6 @@ else:
                 outlier_count = df[(df[col] < Q1-1.5*IQR) | (df[col] > Q3+1.5*IQR)].shape[0]
                 pdf.cell(0, 6, f"{col}: {outlier_count} outliers found", ln=True)
             pdf.ln(5)
-
-            # Correlations
             pdf.set_fill_color(102, 126, 234)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Arial", "B", 13)
@@ -718,14 +650,11 @@ else:
                         val = corr.iloc[i,j]
                         if abs(val) >= 0.5:
                             rel = "Positive" if val > 0 else "Negative"
-                            pdf.cell(0, 6,
-                                f"{corr.columns[i]} and {corr.columns[j]}: {round(val,2)} ({rel})",
-                                ln=True)
+                            pdf.cell(0, 6, f"{corr.columns[i]} and {corr.columns[j]}: {round(val,2)} ({rel})", ln=True)
                             found = True
                 if not found:
                     pdf.cell(0, 6, "No strong correlations found", ln=True)
-
-            pdf_output = pdf.output(dest='S').encode('latin-1')
+            pdf_output = bytes(pdf.output())
             st.download_button(
                 label="📄 Download PDF Report",
                 data=pdf_output,
