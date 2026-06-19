@@ -89,8 +89,8 @@ if st.session_state.df_cleaned is None:
     # Center aligning the file uploader using columns
     col_left, col_mid, col_right = st.columns([1, 2, 1])
     with col_mid:
-        uploaded_file = st.file_uploader("Upload CSV to get started", type=["csv"])
-        
+        st.markdown("<h2 style='text-align:centre;'>Upload CSV to get started</h2>",unsafe_allow_html=True)
+        uploaded_file= st.file_uploader("",type=["csv"])
     if uploaded_file is not None:
         st.session_state.df_cleaned = pd.read_csv(uploaded_file)
         st.session_state.file_name = uploaded_file.name
