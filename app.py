@@ -71,20 +71,57 @@ def get_col_types(df):
             cat_cols.append(col)
     return num_cols, cat_cols, date_cols
 
-# Sidebar
-with st.sidebar:
-    st.markdown('<p class="sidebar-title">📊 AI Data Analyst Pro</p>', unsafe_allow_html=True)
-    st.markdown("*Transform raw data into actionable insights*")
-    st.markdown("---")
+# Main Header
+st.markdown("""
+<div style='text-align:center; padding: 20px 0;'>
+    <h1 style='color:#667eea;'>📊 AI Data Analyst Pro</h1>
+    <p style='color:#888; font-size:1.1em;'>Transform raw data into actionable insights</p>
+</div>
+""", unsafe_allow_html=True)
 
-    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 
+# ── FILE UPLOADER LOGIC (Main Screen vs Sidebar) ───────────────────
+# Pehle check karenge ki file uploaded hai ya nahi, uske hisab se layout decide hoga
+if st.session_state.df_cleaned is None:
+    # Jab file uploaded nahi hai, toh main screen par uploader dikhao
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Center aligning the file uploader using columns
+    col_left, col_mid, col_right = st.columns([1, 2, 1])
+    with col_mid:
+        uploaded_file = st.file_uploader("Upload CSV to get started", type=["csv"])
+        
     if uploaded_file is not None:
-        if st.session_state.file_name != uploaded_file.name:
+        st.session_state.df_cleaned = pd.read_csv(uploaded_file)
+        st.session_state.file_name = uploaded_file.name
+        st.rerun()
+        
+    # Welcome Information Cards below the uploader
+    st.markdown("---")
+    c1, c2, c3 = st.columns(3)
+    c1.info("📋 Auto dataset overview")
+    c2.info("🧹 Clean missing values")
+    c3.info("📊 Interactive charts")
+    c4, c5, c6 = st.columns(3)
+    c4.info("🎯 Outlier detection")
+    c5.info("🔗 Correlation matrix")
+    c6.info("⬇️ Download cleaned data")
+
+else:
+    # Jab file upload ho chuki ho, tab sidebar me option aur navigation dikhao
+    with st.sidebar:
+        st.markdown('<p class="sidebar-title">📊 AI Data Analyst Pro</p>', unsafe_allow_html=True)
+        st.markdown("*Transform raw data into actionable insights*")
+        st.markdown("---")
+        
+        # Sidebar me file change karne ka option bhi rahega
+        uploaded_file = st.file_uploader("Change CSV File", type=["csv"])
+        if uploaded_file is not None and uploaded_file.name != st.session_state.file_name:
             st.session_state.df_cleaned = pd.read_csv(uploaded_file)
             st.session_state.file_name = uploaded_file.name
-
-        st.success("✅ Dataset loaded!")
+            st.rerun()
+            
+        st.success(f"✅ Loaded: {st.session_state.file_name}")
         st.markdown("---")
         st.markdown("### 🧭 Navigation")
         section = st.radio("", [
@@ -102,18 +139,8 @@ with st.sidebar:
             "🎯 KPI Dashboard",
             "⬇️ Download"
         ])
-    else:
-        section = None
 
-# Main Header
-st.markdown("""
-<div style='text-align:center; padding: 20px 0;'>
-    <h1 style='color:#667eea;'>📊 AI Data Analyst Pro</h1>
-    <p style='color:#888; font-size:1.1em;'>Transform raw data into actionable insights</p>
-</div>
-""", unsafe_allow_html=True)
-
-if st.session_state.df_cleaned is not None:
+    # ── APP SECTIONS LOGIC (Only runs if data is loaded) ───────────────────
     df = st.session_state.df_cleaned.copy()
     num_cols, cat_cols, date_cols = get_col_types(df)
 
@@ -698,7 +725,7 @@ if st.session_state.df_cleaned is not None:
                 if not found:
                     pdf.cell(0, 6, "No strong correlations found", ln=True)
 
-            pdf_output = bytes(pdf.output())
+            pdf_output = pdf.output(dest='S').encode('latin-1')
             st.download_button(
                 label="📄 Download PDF Report",
                 data=pdf_output,
@@ -706,20 +733,3 @@ if st.session_state.df_cleaned is not None:
                 mime="application/pdf"
             )
             st.success("✅ PDF Ready - Click above to download!")
-
-else:
-    st.markdown("""
-    <div style='text-align:center; padding: 40px 0;'>
-        <h2 style='color:#667eea;'>👆 Upload a CSV file to get started</h2>
-        <p style='color:#888;'>Use the sidebar to upload your dataset</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    c1, c2, c3 = st.columns(3)
-    c1.info("📋 Auto dataset overview")
-    c2.info("🧹 Clean missing values")
-    c3.info("📊 Interactive charts")
-    c4, c5, c6 = st.columns(3)
-    c4.info("🎯 Outlier detection")
-    c5.info("🔗 Correlation matrix")
-    c6.info("⬇️ Download cleaned data")
