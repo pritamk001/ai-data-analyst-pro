@@ -12,7 +12,7 @@
 
 ## 🚀 Live Demo
 
-👉 **[Try it Live Here](https://ai--data-analyst-proo.streamlit.app)**
+👉 **[Try it Live Here](https://ai-data-analyst-proo.streamlit.app/**
 
 ---
 
