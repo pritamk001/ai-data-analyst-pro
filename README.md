@@ -147,19 +147,27 @@ Open `http://localhost:8501` in your browser.
 ## 📸 Screenshots
 
 ### Home Page
-![Home](screenshots/home.png)
+<img width="1361" height="587" alt="image" src="https://github.com/user-attachments/assets/e69237a2-b28f-41b9-9606-7ee5385bd8f1" />
+
 
 ### Data Quality Index
-![Quality](screenshots/quality.png)
+<img width="1352" height="598" alt="image" src="https://github.com/user-attachments/assets/c5230811-2ee4-480d-86e1-46f865aa0e9b" />
+
 
 ### Correlation Matrix
-![Correlation](screenshots/correlation.png)
+<img width="1049" height="571" alt="image" src="https://github.com/user-attachments/assets/25d39e5f-38b7-48f6-89d6-5b9ed8ad41cd" />
+<img width="1009" height="270" alt="image" src="https://github.com/user-attachments/assets/7439abb6-9d00-4591-a77b-adc3ca547027" />
+
 
 ### Smart Chart Engine
-![Charts](screenshots/charts.png)
+<img width="1002" height="351" alt="image" src="https://github.com/user-attachments/assets/834ebadd-8185-4a3f-9301-a797db4cdf7f" />
+<img width="974" height="436" alt="image" src="https://github.com/user-attachments/assets/6d8c86bf-69d8-4eb2-9c13-b5b146acc9b0" />
+
 
 ### KPI Dashboard
-![KPI](screenshots/kpi.png)
+<img width="1000" height="467" alt="image" src="https://github.com/user-attachments/assets/a02ddcc3-6dce-4d31-901f-81e0c14d5550" />
+<img width="978" height="495" alt="image" src="https://github.com/user-attachments/assets/e816ea68-cc1b-49f5-93c9-c7cae390727f" />
+
 
 ---
 
