@@ -1,46 +1,200 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+from groq import Groq
+from dotenv import load_dotenv
+import os
 
-# Page config
+load_dotenv()
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 st.set_page_config(
     page_title="AI Data Analyst Pro",
     page_icon="📊",
     layout="wide"
 )
 
-# Custom CSS
 st.markdown("""
 <style>
-    .main { background-color: #0e1117; }
-    .stButton > button {
-        width: 100%;
-        border-radius: 8px;
-        padding: 8px 16px;
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        font-weight: 600;
+    /* Hide default streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .block-container {padding: 0 !important; margin: 0 !important;}
+    
+    /* Main background */
+    .stApp {background-color: #0f1117;}
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: #1a1d2e !important;
+        border-right: 1px solid #2d3250;
+        min-width: 220px !important;
+        max-width: 220px !important;
     }
-    .stButton > button:hover {
-        background: linear-gradient(90deg, #764ba2, #667eea);
-        transform: scale(1.02);
-    }
-    .section-header {
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        padding: 10px 20px;
-        border-radius: 8px;
-        color: white;
-        font-size: 1.3em;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    .upload-container {
+    
+    [data-testid="stSidebar"] > div {padding-top: 0 !important;}
+    
+    /* Nav buttons */
+    .nav-item {
         display: flex;
-        justify-content: center;
         align-items: center;
-        padding: 40px 0;
+        gap: 10px;
+        padding: 10px 16px;
+        margin: 2px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #888;
+        font-size: 13px;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+        text-decoration: none;
     }
+    
+    .nav-item:hover {
+        background: #2d3250;
+        color: white;
+    }
+    
+    .nav-item.active {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    /* Top bar */
+    .top-bar {
+        background: #1a1d2e;
+        border-bottom: 1px solid #2d3250;
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+    
+    /* Metric cards */
+    .metric-card {
+        background: #1a1d2e;
+        border: 1px solid #2d3250;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: left;
+    }
+    
+    .metric-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: white;
+        margin: 4px 0;
+    }
+    
+    .metric-label {
+        font-size: 12px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .metric-delta {
+        font-size: 12px;
+        color: #43e97b;
+        margin-top: 4px;
+    }
+    
+    /* Section header */
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    /* Upload area */
+    .upload-area {
+        background: #1a1d2e;
+        border: 2px dashed #667eea44;
+        border-radius: 16px;
+        padding: 60px 40px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .upload-area:hover {
+        border-color: #667eea;
+        background: #1e2240;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(90deg, #667eea, #764ba2) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 8px 20px !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        transition: all 0.3s !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.4) !important;
+    }
+    
+    /* Feature cards on home */
+    .feature-card {
+        background: #1a1d2e;
+        border: 1px solid #2d3250;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin: 4px;
+        transition: all 0.3s;
+    }
+    
+    .feature-card:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+    
+    /* Table styling */
+    .stDataFrame {border-radius: 8px; overflow: hidden;}
+    
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: #1a1d2e !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Radio buttons */
+    .stRadio > div {gap: 8px;}
+    .stRadio label {
+        background: #1a1d2e;
+        border: 1px solid #2d3250;
+        border-radius: 6px;
+        padding: 4px 12px;
+        color: #888;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab"] {
+        background: #1a1d2e;
+        border-radius: 8px 8px 0 0;
+        color: #888;
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(90deg, #667eea, #764ba2) !important;
+        color: white !important;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {width: 6px;}
+    ::-webkit-scrollbar-track {background: #1a1d2e;}
+    ::-webkit-scrollbar-thumb {background: #667eea; border-radius: 3px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -49,8 +203,9 @@ if 'df_cleaned' not in st.session_state:
     st.session_state.df_cleaned = None
 if 'file_name' not in st.session_state:
     st.session_state.file_name = None
+if 'section' not in st.session_state:
+    st.session_state.section = "overview"
 
-# Helper
 def get_col_types(df):
     num_cols = df.select_dtypes(include=['number']).columns.tolist()
     date_cols = []
@@ -64,89 +219,221 @@ def get_col_types(df):
             cat_cols.append(col)
     return num_cols, cat_cols, date_cols
 
-# Sidebar
+def groq_response(prompt):
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+def set_section(s):
+    st.session_state.section = s
+    st.rerun()
+
+# SIDEBAR
 with st.sidebar:
-    st.markdown("### 📊 AI Data Analyst Pro")
-    st.markdown("*Transform raw data into actionable insights*")
-    st.markdown("---")
+    # Logo
+    st.markdown("""
+    <div style='padding: 20px 16px 10px; border-bottom: 1px solid #2d3250; margin-bottom: 10px;'>
+        <div style='font-size: 18px; font-weight: 800; color: white;'>📊 DataAnalyst Pro</div>
+        <div style='font-size: 11px; color: #667eea; margin-top: 2px;'>AI-Powered Analysis</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     if st.session_state.df_cleaned is not None:
-        st.success(f"✅ {st.session_state.file_name}")
-        st.markdown("---")
-        st.markdown("### 🧭 Navigation")
-        section = st.radio("", [
-            "📋 Overview",
-            "🔍 Schema Analysis",
-            "📊 Statistical Summary",
-            "📈 Data Quality Index",
-            "🧹 Missing Value Handler",
-            "🔧 Advanced Cleaning",
-            "🎯 Outlier Detection",
-            "🔗 Correlation Matrix",
-            "🔎 Column Drill Down",
-            "📊 Group By Analysis",
-            "📊 Smart Chart Engine",
-            "🎯 KPI Dashboard",
-            "⬇️ Download"
-        ])
-    else:
-        section = None
+        df = st.session_state.df_cleaned.copy()
+        num_cols, cat_cols, date_cols = get_col_types(df)
 
-# Main Header
-st.markdown("""
-<div style='text-align:center; padding: 30px 0 10px 0;'>
-    <h1 style='color:#667eea;'>📊 AI Data Analyst Pro</h1>
-    <p style='color:#888; font-size:1.1em;'>Transform raw data into actionable insights</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Upload section — center mein
-if st.session_state.df_cleaned is None:
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("""
-        <div style='text-align:center; padding: 20px 0;'>
-            <h2 style='color:#ffffff;'>Upload CSV to get started</h2>
+        st.markdown(f"""
+        <div style='padding: 8px 16px; margin-bottom: 8px;'>
+            <div style='font-size: 11px; color: #888;'>ACTIVE DATASET</div>
+            <div style='font-size: 12px; color: #667eea; font-weight: 600; margin-top: 2px;'>
+                📁 {st.session_state.file_name[:20]}...
+            </div>
+            <div style='font-size: 11px; color: #555; margin-top: 2px;'>
+                {df.shape[0]:,} rows × {df.shape[1]} cols
+            </div>
         </div>
         """, unsafe_allow_html=True)
+
+        st.markdown("<div style='padding: 0 8px; font-size: 11px; color: #555; margin-bottom: 6px; letter-spacing: 1px;'>ANALYSIS</div>", unsafe_allow_html=True)
+
+        nav_items = [
+            ("overview", "📋", "Overview"),
+            ("schema", "🔍", "Schema Analysis"),
+            ("stats", "📊", "Statistical Summary"),
+            ("quality", "📈", "Data Quality Index"),
+        ]
+
+        for key, icon, label in nav_items:
+            active = "active" if st.session_state.section == key else ""
+            bg = "background: linear-gradient(90deg, #667eea22, #764ba222); color: white; border-left: 3px solid #667eea;" if active else "color: #888;"
+            st.markdown(f"""
+            <div style='padding: 9px 16px; margin: 2px 0; border-radius: 8px; cursor: pointer; font-size: 13px; {bg}'>
+                {icon} {label}
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(label, key=f"nav_{key}", help=label):
+                set_section(key)
+
+        st.markdown("<div style='padding: 8px 8px 4px; font-size: 11px; color: #555; margin-top: 8px; letter-spacing: 1px;'>CLEANING</div>", unsafe_allow_html=True)
+
+        clean_items = [
+            ("missing", "🧹", "Missing Values"),
+            ("cleaning", "🔧", "Advanced Cleaning"),
+            ("outliers", "🎯", "Outlier Detection"),
+        ]
+
+        for key, icon, label in clean_items:
+            if st.button(f"{icon} {label}", key=f"nav_{key}"):
+                set_section(key)
+
+        st.markdown("<div style='padding: 8px 8px 4px; font-size: 11px; color: #555; margin-top: 8px; letter-spacing: 1px;'>EXPLORE</div>", unsafe_allow_html=True)
+
+        explore_items = [
+            ("correlation", "🔗", "Correlation Matrix"),
+            ("drilldown", "🔎", "Column Drill Down"),
+            ("groupby", "📊", "Group By Analysis"),
+            ("charts", "📊", "Smart Chart Engine"),
+            ("kpi", "🎯", "KPI Dashboard"),
+        ]
+
+        for key, icon, label in explore_items:
+            if st.button(f"{icon} {label}", key=f"nav_{key}"):
+                set_section(key)
+
+        st.markdown("<div style='padding: 8px 8px 4px; font-size: 11px; color: #555; margin-top: 8px; letter-spacing: 1px;'>AI FEATURES</div>", unsafe_allow_html=True)
+
+        ai_items = [
+            ("ai", "🤖", "AI Insights"),
+            ("nlq", "💬", "Ask Your Data"),
+            ("predictions", "🔮", "AI Predictions"),
+        ]
+
+        for key, icon, label in ai_items:
+            if st.button(f"{icon} {label}", key=f"nav_{key}"):
+                set_section(key)
+
+        st.markdown("<div style='padding: 8px 8px 4px; font-size: 11px; color: #555; margin-top: 8px; letter-spacing: 1px;'>EXPORT</div>", unsafe_allow_html=True)
+
+        if st.button("⬇️ Download", key="nav_download"):
+            set_section("download")
+
+        # New file upload in sidebar
+        st.markdown("<div style='padding: 16px 8px 0; border-top: 1px solid #2d3250; margin-top: 12px;'>", unsafe_allow_html=True)
+        new_file = st.file_uploader("Upload new CSV", type=["csv"], key="sidebar_upload")
+        if new_file is not None:
+            st.session_state.df_cleaned = pd.read_csv(new_file)
+            st.session_state.file_name = new_file.name
+            st.session_state.section = "overview"
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    else:
+        st.markdown("""
+        <div style='padding: 20px 16px; color: #555; font-size: 12px; text-align: center;'>
+            Upload a CSV file to get started
+        </div>
+        """, unsafe_allow_html=True)
+
+# MAIN CONTENT
+if st.session_state.df_cleaned is None:
+    # Upload screen
+    st.markdown("""
+    <div style='display: flex; flex-direction: column; align-items: center; justify-content: center; 
+                min-height: 20px; padding: 40px;'>
+        <div style='text-align: center; margin-bottom: 40px;'>
+            <div style='font-size: 48px; margin-bottom: 16px;'>📊</div>
+            <h1 style='color: white; font-size: 36px; font-weight: 800; margin: 0;'>AI Data Analyst Pro</h1>
+            <p style='color: #888; font-size: 16px; margin-top: 8px;'>Transform raw data into actionable insights — powered by AI</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
         uploaded_file = st.file_uploader("", type=["csv"], label_visibility="collapsed")
         if uploaded_file is not None:
             st.session_state.df_cleaned = pd.read_csv(uploaded_file)
             st.session_state.file_name = uploaded_file.name
+            st.session_state.section = "overview"
             st.rerun()
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    c1.info("📋 Auto dataset overview")
-    c2.info("🧹 Clean missing values")
-    c3.info("📊 Interactive charts")
-    c4, c5, c6 = st.columns(3)
-    c4.info("🎯 Outlier detection")
-    c5.info("🔗 Correlation matrix")
-    c6.info("⬇️ Download cleaned data")
+        st.markdown("""
+        <div style='text-align: center; margin-top: 8px; color: #555; font-size: 13px;'>
+            Drop your CSV file here or click to browse
+        </div>
+        """, unsafe_allow_html=True)
 
-elif st.session_state.df_cleaned is not None:
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Feature cards
+    c1, c2, c3, c4 = st.columns(4)
+    features = [
+        ("📋", "Smart Overview", "Auto-detect column types, missing values, and dataset health score"),
+        ("🧹", "Data Cleaning", "Handle missing values, remove duplicates, convert data types"),
+        ("📊", "Visual Analytics", "Interactive charts — histogram, scatter, heatmap, violin plots"),
+        ("🤖", "AI Insights", "Groq LLaMA 3.3 powered insights, predictions, and recommendations"),
+    ]
+    for col, (icon, title, desc) in zip([c1, c2, c3, c4], features):
+        col.markdown(f"""
+        <div style='background: #1a1d2e; border: 1px solid #2d3250; border-radius: 12px; 
+                    padding: 24px 16px; text-align: center; height: 150px;'>
+            <div style='font-size: 28px; margin-bottom: 8px;'>{icon}</div>
+            <div style='color: white; font-weight: 600; font-size: 14px; margin-bottom: 6px;'>{title}</div>
+            <div style='color: #555; font-size: 12px;'>{desc}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+else:
     df = st.session_state.df_cleaned.copy()
     num_cols, cat_cols, date_cols = get_col_types(df)
+    section = st.session_state.section
+
+    # Top bar
+    st.markdown(f"""
+    <div style='background: #1a1d2e; border-bottom: 1px solid #2d3250; padding: 14px 24px; 
+                margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;'>
+        <div style='color: white; font-size: 16px; font-weight: 600;'>
+            {section.replace("_", " ").title()}
+        </div>
+        <div style='color: #555; font-size: 12px;'>
+            📁 {st.session_state.file_name}  &nbsp;|&nbsp;  
+            {df.shape[0]:,} rows × {df.shape[1]} cols
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # ── OVERVIEW ──────────────────────────────────────
-    if section == "📋 Overview":
-        st.markdown('<div class="section-header">📋 Dataset Overview</div>', unsafe_allow_html=True)
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("🗂 Rows", df.shape[0])
-        c2.metric("📊 Columns", df.shape[1])
-        c3.metric("🔁 Duplicates", df.duplicated().sum())
-        c4.metric("❓ Missing Values", df.isnull().sum().sum())
-        st.markdown("---")
+    if section == "overview":
+        # Metric cards
+        c1, c2, c3, c4, c5 = st.columns(5)
+        metrics = [
+            ("Total Rows", f"{df.shape[0]:,}", "📊"),
+            ("Columns", df.shape[1], "📋"),
+            ("Missing Values", df.isnull().sum().sum(), "❓"),
+            ("Duplicates", df.duplicated().sum(), "🔁"),
+            ("Numeric Cols", len(num_cols), "🔢"),
+        ]
+        for col, (label, val, icon) in zip([c1,c2,c3,c4,c5], metrics):
+            col.markdown(f"""
+            <div style='background: #1a1d2e; border: 1px solid #2d3250; border-radius: 12px; 
+                        padding: 16px; text-align: center;'>
+                <div style='font-size: 24px; margin-bottom: 4px;'>{icon}</div>
+                <div style='font-size: 22px; font-weight: 700; color: white;'>{val}</div>
+                <div style='font-size: 11px; color: #888; text-transform: uppercase;'>{label}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         n_rows = st.slider("Rows to preview", 5, 50, 10)
         st.dataframe(df.head(n_rows), use_container_width=True)
         with st.expander("👁️ View Full Dataset"):
             st.dataframe(df, use_container_width=True)
 
     # ── SCHEMA ────────────────────────────────────────
-    elif section == "🔍 Schema Analysis":
-        st.markdown('<div class="section-header">🔍 Schema Analysis</div>', unsafe_allow_html=True)
+    elif section == "schema":
+        st.markdown('<div class="section-title">Schema Analysis</div>', unsafe_allow_html=True)
         col_info = pd.DataFrame({
             "Column": df.columns,
             "Type": df.dtypes.values,
@@ -158,507 +445,587 @@ elif st.session_state.df_cleaned is not None:
         st.dataframe(col_info, use_container_width=True)
 
     # ── STATISTICAL SUMMARY ───────────────────────────
-    elif section == "📊 Statistical Summary":
-        st.markdown('<div class="section-header">📊 Statistical Summary</div>', unsafe_allow_html=True)
-        st.subheader("Numeric Columns")
-        st.dataframe(df[num_cols].describe().round(2), use_container_width=True)
+    elif section == "stats":
+        st.markdown('<div class="section-title">Statistical Summary</div>', unsafe_allow_html=True)
+        if num_cols:
+            st.subheader("Numeric Columns")
+            st.dataframe(df[num_cols].describe().round(2), use_container_width=True)
         st.markdown("---")
-        st.subheader("Categorical Columns Summary")
-        if len(cat_cols) == 0:
-            st.info("No categorical columns found")
-        else:
-            selected_cat = st.selectbox("Select categorical column", cat_cols)
-            vc = df[selected_cat].value_counts().reset_index()
+        if cat_cols:
+            st.subheader("Categorical Columns")
+            selected_cat = st.selectbox("Select column", cat_cols)
+            vc = df[selected_cat].value_counts().head(20).reset_index()
             vc.columns = [selected_cat, "Count"]
-            vc = vc.head(20)
             c1, c2 = st.columns(2)
             with c1:
                 st.dataframe(vc, use_container_width=True)
             with c2:
-                if len(vc) <= 10:
-                    fig = px.pie(vc, names=selected_cat, values="Count",
-                                title=f"Distribution of {selected_cat}")
-                else:
-                    fig = px.bar(vc, x=selected_cat, y="Count",
-                                title=f"Top 20 - {selected_cat}")
+                fig = px.pie(vc, names=selected_cat, values="Count") if len(vc) <= 10 else px.bar(vc, x=selected_cat, y="Count", color_discrete_sequence=["#667eea"])
+                fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig, use_container_width=True)
 
-    # ── DATA QUALITY INDEX ────────────────────────────
-    elif section == "📈 Data Quality Index":
-        st.markdown('<div class="section-header">📈 Data Quality Index</div>', unsafe_allow_html=True)
+    # ── DATA QUALITY ──────────────────────────────────
+    elif section == "quality":
+        st.markdown('<div class="section-title">Data Quality Index</div>', unsafe_allow_html=True)
         missing_score = 100 - (df.isnull().sum().sum() / (df.shape[0] * df.shape[1]) * 100)
         duplicate_score = 100 - (df.duplicated().sum() / df.shape[0] * 100)
         health_score = round((missing_score + duplicate_score) / 2, 1)
+
         if health_score >= 80:
-            color = "🟢"; status = "Healthy Dataset"
+            status = "🟢 Healthy Dataset"
+            color = "#43e97b"
         elif health_score >= 50:
-            color = "🟡"; status = "Needs Attention"
+            status = "🟡 Needs Attention"
+            color = "#f6c90e"
         else:
-            color = "🔴"; status = "Poor Quality"
-        c1, c2, c3 = st.columns(3)
-        c1.metric(f"{color} Overall Score", f"{health_score}/100", status)
-        c2.metric("Missing Score", f"{round(missing_score, 1)}/100")
-        c3.metric("Duplicate Score", f"{round(duplicate_score, 1)}/100")
-        st.markdown("---")
+            status = "🔴 Poor Quality"
+            color = "#ff6b6b"
+
+        c1, c2, c3, c4 = st.columns(4)
+        for col, (label, val, clr) in zip([c1,c2,c3,c4], [
+            ("Overall Score", f"{health_score}/100", color),
+            ("Status", status.split(" ",1)[1], color),
+            ("Missing Score", f"{round(missing_score,1)}/100", "#667eea"),
+            ("Duplicate Score", f"{round(duplicate_score,1)}/100", "#764ba2"),
+        ]):
+            col.markdown(f"""
+            <div style='background: #1a1d2e; border: 1px solid #2d3250; border-radius: 12px; padding: 16px; text-align: center;'>
+                <div style='font-size: 20px; font-weight: 700; color: {clr};'>{val}</div>
+                <div style='font-size: 11px; color: #888; margin-top: 4px;'>{label}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         fig = px.bar(
             x=["Missing Score", "Duplicate Score", "Overall Score"],
             y=[round(missing_score,1), round(duplicate_score,1), health_score],
-            title="Data Quality Breakdown",
             color=["Missing Score", "Duplicate Score", "Overall Score"],
             text_auto=True,
             color_discrete_sequence=["#667eea", "#764ba2", "#43e97b"]
         )
-        fig.update_yaxes(range=[0, 100])
-        fig.update_layout(showlegend=False)
+        fig.update_yaxes(range=[0,100])
+        fig.update_layout(showlegend=False, paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
         st.plotly_chart(fig, use_container_width=True)
 
     # ── MISSING VALUE HANDLER ─────────────────────────
-    elif section == "🧹 Missing Value Handler":
-        st.markdown('<div class="section-header">🧹 Missing Value Handler</div>', unsafe_allow_html=True)
+    elif section == "missing":
+        st.markdown('<div class="section-title">Missing Value Handler</div>', unsafe_allow_html=True)
         missing_cols = df.columns[df.isnull().any()].tolist()
-        if len(missing_cols) == 0:
+        if not missing_cols:
             st.success("✅ No missing values found!")
         else:
             st.warning(f"⚠️ {len(missing_cols)} columns have missing values")
             for col in missing_cols:
-                with st.expander(f"📌 {col} - {df[col].isnull().sum()} missing values"):
+                with st.expander(f"📌 {col} — {df[col].isnull().sum()} missing"):
                     st.dataframe(df[df[col].isnull()], use_container_width=True)
-                    is_numeric = col in num_cols
-                    if is_numeric:
-                        options = ["Keep as is", "Drop rows", "Fill with Mean", "Fill with Median", "Fill with Mode"]
-                    else:
-                        options = ["Keep as is", "Drop rows", "Fill with Mode"]
-                    action = st.selectbox(f"Handle '{col}'", options, key=f"missing_{col}")
-                    if st.button(f"Apply - {col}", key=f"apply_{col}"):
+                    opts = ["Keep as is", "Drop rows", "Fill with Mean", "Fill with Median", "Fill with Mode"] if col in num_cols else ["Keep as is", "Drop rows", "Fill with Mode"]
+                    action = st.selectbox(f"Handle '{col}'", opts, key=f"mv_{col}")
+                    if st.button(f"Apply", key=f"ap_{col}"):
                         if action == "Drop rows":
                             st.session_state.df_cleaned = st.session_state.df_cleaned.dropna(subset=[col])
-                            st.success(f"✅ Dropped rows with missing {col}")
                         elif action == "Fill with Mean":
-                            mean_val = st.session_state.df_cleaned[col].mean()
-                            st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].fillna(mean_val)
-                            st.success(f"✅ Filled with Mean: {round(mean_val, 2)}")
+                            st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].fillna(st.session_state.df_cleaned[col].mean())
                         elif action == "Fill with Median":
-                            median_val = st.session_state.df_cleaned[col].median()
-                            st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].fillna(median_val)
-                            st.success(f"✅ Filled with Median: {round(median_val, 2)}")
+                            st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].fillna(st.session_state.df_cleaned[col].median())
                         elif action == "Fill with Mode":
-                            mode_val = st.session_state.df_cleaned[col].mode()[0]
-                            st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].fillna(mode_val)
-                            st.success(f"✅ Filled with Mode: {mode_val}")
+                            st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].fillna(st.session_state.df_cleaned[col].mode()[0])
+                        st.success("✅ Applied!")
                         st.rerun()
 
     # ── ADVANCED CLEANING ─────────────────────────────
-    elif section == "🔧 Advanced Cleaning":
-        st.markdown('<div class="section-header">🔧 Advanced Cleaning</div>', unsafe_allow_html=True)
-        st.subheader("🔁 Duplicate Row Remover")
-        dup_count = df.duplicated().sum()
-        if dup_count == 0:
-            st.success("✅ No duplicate rows found!")
-        else:
-            st.warning(f"⚠️ {dup_count} duplicate rows found")
-            with st.expander("👁️ View Duplicate Rows"):
-                st.dataframe(df[df.duplicated()], use_container_width=True)
-            if st.button("🗑️ Remove All Duplicates"):
-                before = len(st.session_state.df_cleaned)
-                st.session_state.df_cleaned = st.session_state.df_cleaned.drop_duplicates()
-                after = len(st.session_state.df_cleaned)
-                st.success(f"✅ Removed {before - after} duplicate rows - {after} rows remaining")
-                st.rerun()
-        st.markdown("---")
-        st.subheader("🔄 Data Type Converter")
-        type_col = st.selectbox("Select column to convert", df.columns.tolist(), key="type_col")
-        st.write(f"**Current type:** `{str(df[type_col].dtype)}`")
-        st.write(f"**Sample values:** {df[type_col].dropna().head(3).tolist()}")
-        target_type = st.radio("Convert to",
-            ["Numeric", "Text/String", "DateTime", "Category"],
-            horizontal=True, key="target_type")
-        if st.button("Convert Type"):
-            try:
-                if target_type == "Numeric":
-                    st.session_state.df_cleaned[type_col] = pd.to_numeric(
-                        st.session_state.df_cleaned[type_col], errors='coerce')
-                elif target_type == "Text/String":
-                    st.session_state.df_cleaned[type_col] = st.session_state.df_cleaned[type_col].astype(str)
-                elif target_type == "DateTime":
-                    st.session_state.df_cleaned[type_col] = pd.to_datetime(
-                        st.session_state.df_cleaned[type_col], errors='coerce')
-                elif target_type == "Category":
-                    st.session_state.df_cleaned[type_col] = st.session_state.df_cleaned[type_col].astype('category')
-                st.success(f"✅ {type_col} converted to {target_type}")
-                st.rerun()
-            except Exception as e:
-                st.error(f"❌ Conversion failed: {e}")
-        st.markdown("---")
-        st.subheader("✂️ Whitespace Cleaner")
-        if len(cat_cols) == 0:
-            st.info("No text columns found")
-        else:
-            if st.button("Clean All Text Columns"):
+    elif section == "cleaning":
+        st.markdown('<div class="section-title">Advanced Cleaning</div>', unsafe_allow_html=True)
+        tab1, tab2, tab3 = st.tabs(["🔁 Duplicates", "🔄 Type Converter", "✂️ Whitespace"])
+
+        with tab1:
+            dup = df.duplicated().sum()
+            if dup == 0:
+                st.success("✅ No duplicates!")
+            else:
+                st.warning(f"⚠️ {dup} duplicate rows")
+                with st.expander("View duplicates"):
+                    st.dataframe(df[df.duplicated()], use_container_width=True)
+                if st.button("Remove All Duplicates"):
+                    before = len(st.session_state.df_cleaned)
+                    st.session_state.df_cleaned = st.session_state.df_cleaned.drop_duplicates()
+                    st.success(f"✅ Removed {before - len(st.session_state.df_cleaned)} rows")
+                    st.rerun()
+
+        with tab2:
+            col_sel = st.selectbox("Column", df.columns.tolist())
+            st.write(f"Type: `{df[col_sel].dtype}` | Sample: {df[col_sel].dropna().head(3).tolist()}")
+            ttype = st.radio("Convert to", ["Numeric", "Text", "DateTime", "Category"], horizontal=True)
+            if st.button("Convert"):
+                try:
+                    if ttype == "Numeric":
+                        st.session_state.df_cleaned[col_sel] = pd.to_numeric(st.session_state.df_cleaned[col_sel], errors='coerce')
+                    elif ttype == "Text":
+                        st.session_state.df_cleaned[col_sel] = st.session_state.df_cleaned[col_sel].astype(str)
+                    elif ttype == "DateTime":
+                        st.session_state.df_cleaned[col_sel] = pd.to_datetime(st.session_state.df_cleaned[col_sel], errors='coerce')
+                    elif ttype == "Category":
+                        st.session_state.df_cleaned[col_sel] = st.session_state.df_cleaned[col_sel].astype('category')
+                    st.success("✅ Converted!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ {e}")
+
+        with tab3:
+            st.info("Strips leading/trailing spaces from all text columns")
+            if st.button("Clean Whitespace"):
                 for col in cat_cols:
                     try:
                         st.session_state.df_cleaned[col] = st.session_state.df_cleaned[col].str.strip()
                     except:
                         pass
-                st.success("✅ Whitespace removed from all text columns")
+                st.success("✅ Done!")
                 st.rerun()
 
     # ── OUTLIER DETECTION ─────────────────────────────
-    elif section == "🎯 Outlier Detection":
-        st.markdown('<div class="section-header">🎯 Outlier Detection</div>', unsafe_allow_html=True)
-        if len(num_cols) == 0:
-            st.warning("No numeric columns found")
+    elif section == "outliers":
+        st.markdown('<div class="section-title">Outlier Detection</div>', unsafe_allow_html=True)
+        if not num_cols:
+            st.warning("No numeric columns")
         else:
-            outlier_summary = []
+            summary = []
             for col in num_cols:
-                Q1 = df[col].quantile(0.25)
-                Q3 = df[col].quantile(0.75)
+                Q1, Q3 = df[col].quantile(0.25), df[col].quantile(0.75)
                 IQR = Q3 - Q1
-                lower = Q1 - 1.5 * IQR
-                upper = Q3 + 1.5 * IQR
-                outlier_count = df[(df[col] < lower) | (df[col] > upper)].shape[0]
-                outlier_summary.append({
-                    "Column": col,
-                    "Outliers Found": outlier_count,
-                    "Lower Bound": round(lower, 2),
-                    "Upper Bound": round(upper, 2),
-                    "Min": round(df[col].min(), 2),
-                    "Max": round(df[col].max(), 2)
-                })
-            st.dataframe(pd.DataFrame(outlier_summary), use_container_width=True)
+                lower, upper = Q1-1.5*IQR, Q3+1.5*IQR
+                count = df[(df[col]<lower)|(df[col]>upper)].shape[0]
+                summary.append({"Column": col, "Outliers": count, "Lower": round(lower,2), "Upper": round(upper,2), "Min": round(df[col].min(),2), "Max": round(df[col].max(),2)})
+            st.dataframe(pd.DataFrame(summary), use_container_width=True)
             st.markdown("---")
-            selected_col = st.selectbox("Select column to inspect", num_cols)
-            chart_choice = st.radio("Chart type", ["Box Plot", "Histogram", "Violin Plot"], horizontal=True)
-            Q1 = df[selected_col].quantile(0.25)
-            Q3 = df[selected_col].quantile(0.75)
-            IQR = Q3 - Q1
-            outlier_rows = df[(df[selected_col] < Q1-1.5*IQR) | (df[selected_col] > Q3+1.5*IQR)]
-            if chart_choice == "Box Plot":
-                fig = px.box(df, y=selected_col, title=f"Box Plot - {selected_col}")
-            elif chart_choice == "Histogram":
-                fig = px.histogram(df, x=selected_col, title=f"Distribution - {selected_col}")
+            sel = st.selectbox("Inspect", num_cols)
+            chart = st.radio("Chart", ["Box Plot", "Histogram", "Violin"], horizontal=True)
+            Q1, Q3 = df[sel].quantile(0.25), df[sel].quantile(0.75)
+            IQR = Q3-Q1
+            out_rows = df[(df[sel]<Q1-1.5*IQR)|(df[sel]>Q3+1.5*IQR)]
+            if chart == "Box Plot":
+                fig = px.box(df, y=sel, color_discrete_sequence=["#667eea"])
+            elif chart == "Histogram":
+                fig = px.histogram(df, x=sel, color_discrete_sequence=["#667eea"])
             else:
-                fig = px.violin(df, y=selected_col, title=f"Violin Plot - {selected_col}", box=True)
+                fig = px.violin(df, y=sel, box=True, color_discrete_sequence=["#667eea"])
+            fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
             st.plotly_chart(fig, use_container_width=True)
-            with st.expander(f"👁️ View {len(outlier_rows)} outlier rows"):
-                st.dataframe(outlier_rows, use_container_width=True)
+            with st.expander(f"👁️ {len(out_rows)} outlier rows"):
+                st.dataframe(out_rows, use_container_width=True)
 
     # ── CORRELATION MATRIX ────────────────────────────
-    elif section == "🔗 Correlation Matrix":
-        st.markdown('<div class="section-header">🔗 Correlation Matrix</div>', unsafe_allow_html=True)
+    elif section == "correlation":
+        st.markdown('<div class="section-title">Correlation Matrix</div>', unsafe_allow_html=True)
         if len(num_cols) < 2:
-            st.warning("Need at least 2 numeric columns")
+            st.warning("Need 2+ numeric columns")
         else:
-            corr_matrix = df[num_cols].corr().round(2)
-            fig_corr = px.imshow(corr_matrix, text_auto=True,
-                                color_continuous_scale="RdBu_r",
-                                title="Correlation Heatmap", aspect="auto")
-            st.plotly_chart(fig_corr, use_container_width=True)
-            strong = []
-            for i in range(len(corr_matrix.columns)):
-                for j in range(i+1, len(corr_matrix.columns)):
-                    val = corr_matrix.iloc[i, j]
-                    if abs(val) >= 0.5:
-                        strong.append({
-                            "Column 1": corr_matrix.columns[i],
-                            "Column 2": corr_matrix.columns[j],
-                            "Correlation": val,
-                            "Relationship": "Strong Positive" if val > 0 else "Strong Negative"
-                        })
-            st.markdown("---")
-            st.subheader("Strong Correlations Found")
-            if len(strong) == 0:
-                st.info("No strong correlations found")
-            else:
+            corr = df[num_cols].corr().round(2)
+            fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r", aspect="auto")
+            fig.update_layout(paper_bgcolor="#1a1d2e", font_color="white")
+            st.plotly_chart(fig, use_container_width=True)
+            strong = [{"Col 1": corr.columns[i], "Col 2": corr.columns[j], "Correlation": corr.iloc[i,j], "Type": "Positive" if corr.iloc[i,j]>0 else "Negative"}
+                     for i in range(len(corr.columns)) for j in range(i+1,len(corr.columns)) if abs(corr.iloc[i,j])>=0.5]
+            if strong:
+                st.subheader("Strong Correlations (≥ 0.5)")
                 st.dataframe(pd.DataFrame(strong), use_container_width=True)
 
     # ── COLUMN DRILL DOWN ─────────────────────────────
-    elif section == "🔎 Column Drill Down":
-        st.markdown('<div class="section-header">🔎 Column Drill Down</div>', unsafe_allow_html=True)
-        selected = st.selectbox("Select any column", df.columns.tolist())
+    elif section == "drilldown":
+        st.markdown('<div class="section-title">Column Drill Down</div>', unsafe_allow_html=True)
+        sel = st.selectbox("Select column", df.columns.tolist())
+        c1,c2,c3,c4 = st.columns(4)
+        for col, (lbl, val) in zip([c1,c2,c3,c4],[("Type",str(df[sel].dtype)),("Unique",df[sel].nunique()),("Missing",df[sel].isnull().sum()),("Missing %",f"{round(df[sel].isnull().sum()/len(df)*100,2)}%")]):
+            col.metric(lbl, val)
         st.markdown("---")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Type", str(df[selected].dtype))
-        c2.metric("Unique Values", df[selected].nunique())
-        c3.metric("Missing", df[selected].isnull().sum())
-        c4.metric("Missing %", f"{round(df[selected].isnull().sum()/len(df)*100, 2)}%")
-        st.markdown("---")
-        if selected in num_cols:
-            c1, c2, c3, c4, c5 = st.columns(5)
-            c1.metric("Mean", round(df[selected].mean(), 2))
-            c2.metric("Median", round(df[selected].median(), 2))
-            c3.metric("Std Dev", round(df[selected].std(), 2))
-            c4.metric("Min", round(df[selected].min(), 2))
-            c5.metric("Max", round(df[selected].max(), 2))
-            st.markdown("---")
-            c1, c2 = st.columns(2)
+        if sel in num_cols:
+            c1,c2,c3,c4,c5 = st.columns(5)
+            for col,(lbl,val) in zip([c1,c2,c3,c4,c5],[("Mean",round(df[sel].mean(),2)),("Median",round(df[sel].median(),2)),("Std",round(df[sel].std(),2)),("Min",round(df[sel].min(),2)),("Max",round(df[sel].max(),2))]):
+                col.metric(lbl,val)
+            c1,c2 = st.columns(2)
             with c1:
-                fig = px.histogram(df, x=selected, title=f"Distribution - {selected}")
+                fig = px.histogram(df, x=sel, color_discrete_sequence=["#667eea"])
+                fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig, use_container_width=True)
             with c2:
-                fig2 = px.box(df, y=selected, title=f"Spread - {selected}")
+                fig2 = px.box(df, y=sel, color_discrete_sequence=["#764ba2"])
+                fig2.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig2, use_container_width=True)
-            Q1 = df[selected].quantile(0.25)
-            Q3 = df[selected].quantile(0.75)
-            IQR = Q3 - Q1
-            outlier_count = df[(df[selected] < Q1-1.5*IQR) | (df[selected] > Q3+1.5*IQR)].shape[0]
-            st.info(f"Outliers detected: {outlier_count} rows")
-        elif selected in date_cols:
-            st.info("Date column detected")
-            vc = df[selected].value_counts().head(10).reset_index()
-            vc.columns = [selected, "Count"]
-            fig = px.bar(vc, x=selected, y="Count", title=f"Top 10 dates - {selected}")
-            st.plotly_chart(fig, use_container_width=True)
         else:
-            vc = df[selected].value_counts().head(15).reset_index()
-            vc.columns = [selected, "Count"]
-            c1, c2 = st.columns(2)
+            vc = df[sel].value_counts().head(15).reset_index()
+            vc.columns = [sel,"Count"]
+            c1,c2 = st.columns(2)
             with c1:
                 st.dataframe(vc, use_container_width=True)
             with c2:
-                if len(vc) <= 8:
-                    fig = px.pie(vc, names=selected, values="Count", title=f"Distribution - {selected}")
-                else:
-                    fig = px.bar(vc, x=selected, y="Count", title=f"Top 15 - {selected}")
+                fig = px.pie(vc, names=sel, values="Count") if len(vc)<=8 else px.bar(vc, x=sel, y="Count", color_discrete_sequence=["#667eea"])
+                fig.update_layout(paper_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig, use_container_width=True)
 
-    # ── GROUP BY ANALYSIS ─────────────────────────────
-    elif section == "📊 Group By Analysis":
-        st.markdown('<div class="section-header">📊 Group By Analysis</div>', unsafe_allow_html=True)
-        if len(cat_cols) == 0:
-            st.warning("No categorical columns found for grouping")
-        elif len(num_cols) == 0:
-            st.warning("No numeric columns found for aggregation")
+    # ── GROUP BY ──────────────────────────────────────
+    elif section == "groupby":
+        st.markdown('<div class="section-title">Group By Analysis</div>', unsafe_allow_html=True)
+        if not cat_cols or not num_cols:
+            st.warning("Need both categorical and numeric columns")
         else:
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                group_col = st.selectbox("Group By", cat_cols, key="grp_col")
-            with c2:
-                value_col = st.selectbox("Value Column", num_cols, key="val_col")
-            with c3:
-                agg_func = st.selectbox("Aggregation",
-                    ["Mean", "Sum", "Count", "Max", "Min", "Median"], key="agg_func")
-            agg_map = {"Mean": "mean", "Sum": "sum", "Count": "count",
-                      "Max": "max", "Min": "min", "Median": "median"}
-            result = df.groupby(group_col)[value_col].agg(agg_map[agg_func]).reset_index()
-            result.columns = [group_col, f"{agg_func} of {value_col}"]
-            result = result.sort_values(f"{agg_func} of {value_col}", ascending=False)
-            st.markdown("---")
-            c1, c2 = st.columns(2)
+            c1,c2,c3 = st.columns(3)
+            with c1: grp = st.selectbox("Group By", cat_cols)
+            with c2: val = st.selectbox("Value", num_cols)
+            with c3: agg = st.selectbox("Aggregation", ["Mean","Sum","Count","Max","Min","Median"])
+            agg_map = {"Mean":"mean","Sum":"sum","Count":"count","Max":"max","Min":"min","Median":"median"}
+            result = df.groupby(grp)[val].agg(agg_map[agg]).reset_index()
+            result.columns = [grp, f"{agg} of {val}"]
+            result = result.sort_values(f"{agg} of {val}", ascending=False)
+            c1,c2 = st.columns(2)
             with c1:
                 st.dataframe(result, use_container_width=True)
             with c2:
-                chart_opt = st.radio("Chart Type", ["Bar Chart", "Pie Chart"], horizontal=True)
-                if chart_opt == "Bar Chart":
-                    fig = px.bar(result, x=group_col, y=f"{agg_func} of {value_col}",
-                                title=f"{agg_func} of {value_col} by {group_col}", text_auto=True)
-                else:
-                    fig = px.pie(result, names=group_col, values=f"{agg_func} of {value_col}",
-                                title=f"{agg_func} of {value_col} by {group_col}")
+                chart = st.radio("Chart", ["Bar","Pie"], horizontal=True)
+                fig = px.bar(result, x=grp, y=f"{agg} of {val}", text_auto=True, color_discrete_sequence=["#667eea"]) if chart=="Bar" else px.pie(result, names=grp, values=f"{agg} of {val}")
+                fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig, use_container_width=True)
-            st.markdown("---")
-            top = result.iloc[0]
-            bottom = result.iloc[-1]
-            st.success(f"Highest: {top[group_col]} - {round(top.iloc[1], 2)}")
-            st.error(f"Lowest: {bottom[group_col]} - {round(bottom.iloc[1], 2)}")
+            st.success(f"Highest: {result.iloc[0][grp]} — {round(result.iloc[0].iloc[1],2)}")
+            st.error(f"Lowest: {result.iloc[-1][grp]} — {round(result.iloc[-1].iloc[1],2)}")
 
     # ── SMART CHART ENGINE ────────────────────────────
-    elif section == "📊 Smart Chart Engine":
-        st.markdown('<div class="section-header">📊 Smart Chart Engine</div>', unsafe_allow_html=True)
-        all_cols = df.columns.tolist()
-        analysis_type = st.radio("Analysis Type", ["Single Column", "Two Columns"], horizontal=True)
-        if analysis_type == "Single Column":
-            col_selected = st.selectbox("Select Column", all_cols)
-            if col_selected in num_cols:
-                chart_opt = st.radio("Chart Type", ["Histogram", "Box Plot", "Violin Plot"], horizontal=True)
-                if chart_opt == "Histogram":
-                    fig = px.histogram(df, x=col_selected, title=f"Distribution - {col_selected}")
-                elif chart_opt == "Box Plot":
-                    fig = px.box(df, y=col_selected, title=f"Box Plot - {col_selected}")
-                else:
-                    fig = px.violin(df, y=col_selected, title=f"Violin - {col_selected}", box=True)
-            elif col_selected in date_cols:
-                vc = df[col_selected].value_counts().sort_index().reset_index()
-                vc.columns = [col_selected, "Count"]
-                fig = px.line(vc, x=col_selected, y="Count", title=f"Frequency - {col_selected}")
+    elif section == "charts":
+        st.markdown('<div class="section-title">Smart Chart Engine</div>', unsafe_allow_html=True)
+        atype = st.radio("", ["Single Column","Two Columns"], horizontal=True)
+        if atype == "Single Column":
+            col_s = st.selectbox("Column", df.columns.tolist())
+            if col_s in num_cols:
+                ct = st.radio("Chart", ["Histogram","Box Plot","Violin"], horizontal=True)
+                fig = px.histogram(df, x=col_s, color_discrete_sequence=["#667eea"]) if ct=="Histogram" else (px.box(df, y=col_s, color_discrete_sequence=["#667eea"]) if ct=="Box Plot" else px.violin(df, y=col_s, box=True, color_discrete_sequence=["#667eea"]))
+            elif col_s in date_cols:
+                vc = df[col_s].value_counts().sort_index().reset_index()
+                vc.columns = [col_s,"Count"]
+                fig = px.line(vc, x=col_s, y="Count", color_discrete_sequence=["#667eea"])
             else:
-                chart_opt = st.radio("Chart Type", ["Bar Chart", "Pie Chart"], horizontal=True)
-                vc = df[col_selected].value_counts().head(15).reset_index()
-                vc.columns = [col_selected, "Count"]
-                if chart_opt == "Bar Chart":
-                    fig = px.bar(vc, x=col_selected, y="Count", title=f"Value Counts - {col_selected}")
-                else:
-                    fig = px.pie(vc, names=col_selected, values="Count", title=f"Distribution - {col_selected}")
+                ct = st.radio("Chart", ["Bar","Pie"], horizontal=True)
+                vc = df[col_s].value_counts().head(15).reset_index()
+                vc.columns = [col_s,"Count"]
+                fig = px.bar(vc, x=col_s, y="Count", color_discrete_sequence=["#667eea"]) if ct=="Bar" else px.pie(vc, names=col_s, values="Count")
+            fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
             st.plotly_chart(fig, use_container_width=True)
         else:
-            col_x = st.selectbox("Select X axis", all_cols, key="x_col")
+            col_x = st.selectbox("X axis", df.columns.tolist(), key="cx")
             if col_x in date_cols:
-                col_y = st.selectbox("Select Y axis", num_cols, key="y_col")
-                chart_opt = st.radio("Chart Type", ["Line Chart", "Bar Chart"], horizontal=True)
-                df_temp = df[[col_x, col_y]].copy()
-                df_temp[col_x] = pd.to_datetime(df_temp[col_x], errors='coerce')
-                df_temp = df_temp.sort_values(col_x)
-                if chart_opt == "Line Chart":
-                    fig = px.line(df_temp, x=col_x, y=col_y, title=f"{col_y} over {col_x}")
-                else:
-                    fig = px.bar(df_temp, x=col_x, y=col_y, title=f"{col_y} by {col_x}")
+                col_y = st.selectbox("Y axis", num_cols, key="cy")
+                df_t = df[[col_x,col_y]].copy()
+                df_t[col_x] = pd.to_datetime(df_t[col_x], errors='coerce')
+                fig = px.line(df_t.sort_values(col_x), x=col_x, y=col_y, color_discrete_sequence=["#667eea"])
             elif col_x in num_cols:
-                remaining = [c for c in num_cols if c != col_x]
-                if len(remaining) == 0:
-                    st.warning("Select different X axis column")
+                rem = [c for c in num_cols if c!=col_x]
+                if not rem:
+                    st.warning("Select different column")
                     st.stop()
-                col_y = st.selectbox("Select Y axis", remaining, key="y_col")
-                chart_opt = st.radio("Chart Type", ["Scatter Plot", "Area Chart"], horizontal=True)
-                if chart_opt == "Scatter Plot":
-                    fig = px.scatter(df, x=col_x, y=col_y, title=f"{col_x} vs {col_y}", trendline="ols")
-                else:
-                    fig = px.area(df.sort_values(col_x), x=col_x, y=col_y, title=f"{col_x} vs {col_y}")
+                col_y = st.selectbox("Y axis", rem, key="cy")
+                ct = st.radio("Chart", ["Scatter","Area"], horizontal=True)
+                fig = px.scatter(df, x=col_x, y=col_y, trendline="ols", color_discrete_sequence=["#667eea"]) if ct=="Scatter" else px.area(df.sort_values(col_x), x=col_x, y=col_y, color_discrete_sequence=["#667eea"])
             else:
-                col_y = st.selectbox("Select Y axis", num_cols, key="y_col")
-                chart_opt = st.radio("Chart Type", ["Box Plot", "Bar Chart", "Violin Plot"], horizontal=True)
-                if chart_opt == "Box Plot":
-                    fig = px.box(df, x=col_x, y=col_y, title=f"{col_y} by {col_x}")
-                elif chart_opt == "Bar Chart":
-                    fig = px.bar(df, x=col_x, y=col_y, title=f"{col_y} by {col_x}")
-                else:
-                    fig = px.violin(df, x=col_x, y=col_y, title=f"{col_y} by {col_x}")
+                col_y = st.selectbox("Y axis", num_cols, key="cy")
+                ct = st.radio("Chart", ["Box","Bar","Violin"], horizontal=True)
+                if ct=="Box": fig = px.box(df, x=col_x, y=col_y, color_discrete_sequence=["#667eea"])
+                elif ct=="Bar": fig = px.bar(df, x=col_x, y=col_y, color_discrete_sequence=["#667eea"])
+                else: fig = px.violin(df, x=col_x, y=col_y, color_discrete_sequence=["#667eea"])
+            fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
             st.plotly_chart(fig, use_container_width=True)
 
     # ── KPI DASHBOARD ─────────────────────────────────
-    elif section == "🎯 KPI Dashboard":
-        st.markdown('<div class="section-header">🎯 KPI Dashboard</div>', unsafe_allow_html=True)
-        if len(num_cols) == 0:
-            st.warning("No numeric columns found")
+    elif section == "kpi":
+        st.markdown('<div class="section-title">KPI Dashboard</div>', unsafe_allow_html=True)
+        if not num_cols:
+            st.warning("No numeric columns")
         else:
-            kpi_col = st.selectbox("Select column", num_cols)
-            k1, k2, k3, k4, k5 = st.columns(5)
-            k1.metric("Mean", round(df[kpi_col].mean(), 2))
-            k2.metric("Median", round(df[kpi_col].median(), 2))
-            k3.metric("Max", round(df[kpi_col].max(), 2))
-            k4.metric("Min", round(df[kpi_col].min(), 2))
-            k5.metric("Std Dev", round(df[kpi_col].std(), 2))
-            st.markdown("---")
-            c1, c2 = st.columns(2)
+            kpi = st.selectbox("Column", num_cols)
+            c1,c2,c3,c4,c5 = st.columns(5)
+            for col,(lbl,val) in zip([c1,c2,c3,c4,c5],[("Mean",round(df[kpi].mean(),2)),("Median",round(df[kpi].median(),2)),("Max",round(df[kpi].max(),2)),("Min",round(df[kpi].min(),2)),("Std Dev",round(df[kpi].std(),2))]):
+                col.metric(lbl,val)
+            c1,c2 = st.columns(2)
             with c1:
-                fig = px.histogram(df, x=kpi_col, title=f"Distribution - {kpi_col}")
+                fig = px.histogram(df, x=kpi, color_discrete_sequence=["#667eea"])
+                fig.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig, use_container_width=True)
             with c2:
-                fig2 = px.box(df, y=kpi_col, title=f"Spread - {kpi_col}")
+                fig2 = px.box(df, y=kpi, color_discrete_sequence=["#764ba2"])
+                fig2.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
                 st.plotly_chart(fig2, use_container_width=True)
 
+    # ── AI INSIGHTS ───────────────────────────────────
+    elif section == "ai":
+        st.markdown('<div class="section-title">AI Insights — Powered by Groq LLaMA 3.3</div>', unsafe_allow_html=True)
+
+        context = f"""
+Dataset: {st.session_state.file_name}
+Rows: {df.shape[0]}, Columns: {df.shape[1]}
+Columns: {list(df.columns)}
+Missing: {df.isnull().sum().sum()}, Duplicates: {df.duplicated().sum()}
+Numeric: {num_cols}, Categorical: {cat_cols}
+Stats: {df[num_cols].describe().round(2).to_string() if num_cols else 'None'}
+"""
+        tab1,tab2,tab3,tab4 = st.tabs(["📊 Summary","💡 Key Insights","📋 Recommendations","⚠️ Risk Analysis"])
+
+        with tab1:
+            c1,c2 = st.columns(2)
+            with c1:
+                td = {"Type":["Numeric","Categorical","Date"],"Count":[len(num_cols),len(cat_cols),len(date_cols)]}
+                fig = px.bar(td, x="Type", y="Count", color="Type", text_auto=True, color_discrete_sequence=["#667eea","#764ba2","#43e97b"])
+                fig.update_layout(showlegend=False, paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white")
+                st.plotly_chart(fig, use_container_width=True)
+            with c2:
+                mv = df.isnull().sum()
+                mv = mv[mv>0]
+                if len(mv)>0:
+                    fig2 = px.bar(x=mv.index, y=mv.values, color=mv.values, color_continuous_scale="Reds", text_auto=True)
+                    fig2.update_layout(paper_bgcolor="#1a1d2e", plot_bgcolor="#1a1d2e", font_color="white", showlegend=False)
+                    st.plotly_chart(fig2, use_container_width=True)
+                else:
+                    st.success("✅ No missing values!")
+            if st.button("🤖 Generate AI Summary"):
+                with st.spinner("Analyzing..."):
+                    prompt = f"""Senior data analyst. Analyze dataset.
+{context}
+Format:
+### What is this dataset about?
+[2-3 sentences]
+### Key Characteristics
+- [point with numbers]
+- [point with numbers]
+- [point with numbers]
+### Data Quality Assessment
+- **Completeness:** [%]
+- **Overall:** [Good/Fair/Poor]
+### Most Important Columns
+- **[col]:** [why important]
+- **[col]:** [why important]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+
+        with tab2:
+            if len(num_cols)>=2:
+                corr = df[num_cols].corr().round(2)
+                fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r", aspect="auto")
+                fig.update_layout(paper_bgcolor="#1a1d2e", font_color="white")
+                st.plotly_chart(fig, use_container_width=True)
+                strong_corr = [{"Col1":corr.columns[i],"Col2":corr.columns[j],"Val":corr.iloc[i,j]} for i in range(len(corr.columns)) for j in range(i+1,len(corr.columns)) if abs(corr.iloc[i,j])>=0.5]
+            else:
+                strong_corr = []
+            if st.button("🤖 Generate Key Insights"):
+                with st.spinner("Finding patterns..."):
+                    prompt = f"""Senior data analyst. 5 key insights.
+{context}
+Strong correlations: {strong_corr}
+Format exactly:
+### Insight 1: [Title]
+**Finding:** [specific with numbers]
+**Business Impact:** [meaning]
+### Insight 2: [Title]
+**Finding:** [specific with numbers]
+**Business Impact:** [meaning]
+### Insight 3: [Title]
+**Finding:** [specific with numbers]
+**Business Impact:** [meaning]
+### Insight 4: [Title]
+**Finding:** [specific with numbers]
+**Business Impact:** [meaning]
+### Insight 5: [Title]
+**Finding:** [specific with numbers]
+**Business Impact:** [meaning]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+
+        with tab3:
+            ms = 100-(df.isnull().sum().sum()/(df.shape[0]*df.shape[1])*100)
+            ds = 100-(df.duplicated().sum()/df.shape[0]*100)
+            hs = round((ms+ds)/2,1)
+            c1,c2 = st.columns(2)
+            with c1:
+                fig = px.pie(values=[hs,100-hs], names=["Quality",""], hole=0.7, color_discrete_sequence=["#43e97b","#1e2130"])
+                fig.update_layout(showlegend=False, paper_bgcolor="#1a1d2e", font_color="white", height=220, annotations=[dict(text=f"{hs}%", font_size=22, showarrow=False)])
+                st.plotly_chart(fig, use_container_width=True)
+            with c2:
+                st.metric("Missing Score", f"{round(ms,1)}/100")
+                st.metric("Duplicate Score", f"{round(ds,1)}/100")
+                st.metric("Overall", f"{hs}/100")
+            if st.button("🤖 Generate Recommendations"):
+                with st.spinner("Generating..."):
+                    prompt = f"""Senior data analyst. Business recommendations.
+{context}
+Quality: {hs}/100
+Format:
+### Top 3 Business Recommendations
+1. **[Action]:** [recommendation]
+2. **[Action]:** [recommendation]
+3. **[Action]:** [recommendation]
+### Data Quality Improvements
+- **[Issue]:** [fix]
+- **[Issue]:** [fix]
+### Further Analysis
+- [analysis 1]
+- [analysis 2]
+### Risk Flags
+[flag 1]
+[flag 2]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+
+        with tab4:
+            if st.button("🤖 Analyze Risks"):
+                with st.spinner("Analyzing risks..."):
+                    prompt = f"""Senior data analyst. Identify risks.
+{context}
+Format:
+### Data Quality Risks
+- **[Risk]:** [description]
+- **[Risk]:** [description]
+### Business Risks
+- **[Risk]:** [description]
+- **[Risk]:** [description]
+### Statistical Anomalies
+- **[Anomaly]:** [meaning]
+### Recommended Mitigations
+1. [action]
+2. [action]
+3. [action]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+            else:
+                    st.warning("Enter a question first")
+
+    # ── NLQ ───────────────────────────────────────────
+    elif section == "nlq":
+        st.markdown('<div class="section-title">💬 Ask Your Data</div>', unsafe_allow_html=True)
+        st.markdown("*Ask any question in plain English — AI will analyze your dataset and answer*")
+        q = st.text_input("Your question", placeholder="e.g. Which region has highest sales? What is average profit by category?")
+        if st.button("🔍 Get Answer"):
+            if q:
+                with st.spinner("Analyzing..."):
+                    prompt = f"""Senior data analyst. Answer question about dataset.
+Dataset: {st.session_state.file_name}
+Rows: {df.shape[0]}, Cols: {df.shape[1]}
+Columns: {list(df.columns)}
+Sample: {df.head(5).to_string()}
+Stats: {df[num_cols].describe().round(2).to_string() if num_cols else 'None'}
+Question: {q}
+Format:
+### Direct Answer
+[answer with numbers]
+### Supporting Evidence
+[data points]
+### Additional Context
+[context/caveats]
+### Suggested Next Steps
+[what to analyze next]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+            else:
+                st.warning("Enter a question")
+
+    # ── AI PREDICTIONS ────────────────────────────────
+    elif section == "predictions":
+        st.markdown('<div class="section-title">🔮 AI Predictions</div>', unsafe_allow_html=True)
+        tab1,tab2 = st.tabs(["📈 Trend Prediction","🎯 Anomaly Forecast"])
+        context = f"Dataset: {st.session_state.file_name}\nRows: {df.shape[0]}, Cols: {df.shape[1]}\nColumns: {list(df.columns)}\nStats: {df[num_cols].describe().round(2).to_string() if num_cols else 'None'}"
+
+        with tab1:
+            if st.button("🔮 Predict Trends"):
+                with st.spinner("Predicting..."):
+                    prompt = f"""Forecasting expert. Predict trends.
+{context}
+Format:
+### Short-term Trends (30 days)
+- **[Metric]:** [trend + reason]
+- **[Metric]:** [trend + reason]
+### Medium-term (3-6 months)
+- **[Area]:** [outlook]
+- **[Area]:** [outlook]
+### Key Drivers
+- [driver 1]
+- [driver 2]
+### Confidence
+[level + why]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+
+        with tab2:
+            if st.button("🎯 Forecast Anomalies"):
+                with st.spinner("Forecasting..."):
+                    prompt = f"""Anomaly detection expert.
+{context}
+Format:
+### Current Anomalies
+- **[Anomaly]:** [description with numbers]
+- **[Anomaly]:** [description with numbers]
+### Predicted Future Anomalies
+- **[Risk]:** [what + when]
+- **[Risk]:** [what + when]
+### Prevention
+1. [action]
+2. [action]
+### KPIs to Monitor
+- [KPI 1]
+- [KPI 2]
+No italic formatting."""
+                    st.markdown(groq_response(prompt))
+
     # ── DOWNLOAD ──────────────────────────────────────
-    elif section == "⬇️ Download":
-        st.markdown('<div class="section-header">⬇️ Download</div>', unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total Rows", df.shape[0])
-        c2.metric("Total Columns", df.shape[1])
-        c3.metric("Remaining Missing", df.isnull().sum().sum())
+    elif section == "download":
+        st.markdown('<div class="section-title">Download</div>', unsafe_allow_html=True)
+        c1,c2,c3 = st.columns(3)
+        c1.metric("Rows", df.shape[0])
+        c2.metric("Columns", df.shape[1])
+        c3.metric("Missing", df.isnull().sum().sum())
         st.markdown("---")
-        st.subheader("📥 Download Cleaned CSV")
         csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv,
-            file_name="cleaned_dataset.csv",
-            mime="text/csv"
-        )
+        st.download_button("📥 Download Cleaned CSV", data=csv, file_name="cleaned_dataset.csv", mime="text/csv")
         st.markdown("---")
-        st.subheader("📄 Download PDF Report")
         if st.button("Generate PDF Report"):
             from fpdf import FPDF
             pdf = FPDF()
             pdf.add_page()
-            pdf.set_font("Arial", "B", 18)
-            pdf.cell(0, 12, "AI Data Analyst Pro - Report", ln=True, align="C")
-            pdf.set_font("Arial", "", 10)
-            pdf.cell(0, 8, f"Dataset: {st.session_state.file_name}", ln=True, align="C")
+            pdf.set_font("Arial","B",18)
+            pdf.cell(0,12,"AI Data Analyst Pro - Report",ln=True,align="C")
+            pdf.set_font("Arial","",10)
+            pdf.cell(0,8,f"Dataset: {st.session_state.file_name}",ln=True,align="C")
             pdf.ln(5)
-            pdf.set_fill_color(102, 126, 234)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 9, "  Dataset Summary", ln=True, fill=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Arial", "", 10)
+            pdf.set_fill_color(102,126,234)
+            pdf.set_text_color(255,255,255)
+            pdf.set_font("Arial","B",13)
+            pdf.cell(0,9,"  Dataset Summary",ln=True,fill=True)
+            pdf.set_text_color(0,0,0)
+            pdf.set_font("Arial","",10)
             pdf.ln(3)
-            pdf.cell(0, 7, f"Total Rows: {df.shape[0]}", ln=True)
-            pdf.cell(0, 7, f"Total Columns: {df.shape[1]}", ln=True)
-            pdf.cell(0, 7, f"Duplicate Rows: {df.duplicated().sum()}", ln=True)
-            pdf.cell(0, 7, f"Total Missing Values: {df.isnull().sum().sum()}", ln=True)
+            pdf.cell(0,7,f"Rows: {df.shape[0]} | Columns: {df.shape[1]} | Missing: {df.isnull().sum().sum()} | Duplicates: {df.duplicated().sum()}",ln=True)
             pdf.ln(5)
-            missing_score = 100 - (df.isnull().sum().sum() / (df.shape[0] * df.shape[1]) * 100)
-            duplicate_score = 100 - (df.duplicated().sum() / df.shape[0] * 100)
-            health_score = round((missing_score + duplicate_score) / 2, 1)
-            pdf.set_fill_color(102, 126, 234)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 9, "  Data Quality Index", ln=True, fill=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Arial", "", 10)
+            ms = 100-(df.isnull().sum().sum()/(df.shape[0]*df.shape[1])*100)
+            ds = 100-(df.duplicated().sum()/df.shape[0]*100)
+            hs = round((ms+ds)/2,1)
+            pdf.set_fill_color(102,126,234)
+            pdf.set_text_color(255,255,255)
+            pdf.set_font("Arial","B",13)
+            pdf.cell(0,9,"  Data Quality Index",ln=True,fill=True)
+            pdf.set_text_color(0,0,0)
+            pdf.set_font("Arial","",10)
             pdf.ln(3)
-            pdf.cell(0, 7, f"Overall Quality Score: {health_score}/100", ln=True)
-            pdf.cell(0, 7, f"Missing Score: {round(missing_score, 1)}/100", ln=True)
-            pdf.cell(0, 7, f"Duplicate Score: {round(duplicate_score, 1)}/100", ln=True)
+            pdf.cell(0,7,f"Overall: {hs}/100 | Missing: {round(ms,1)}/100 | Duplicate: {round(ds,1)}/100",ln=True)
             pdf.ln(5)
-            pdf.set_fill_color(102, 126, 234)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 9, "  Schema Analysis", ln=True, fill=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Arial", "", 9)
+            pdf.set_fill_color(102,126,234)
+            pdf.set_text_color(255,255,255)
+            pdf.set_font("Arial","B",13)
+            pdf.cell(0,9,"  Schema Analysis",ln=True,fill=True)
+            pdf.set_text_color(0,0,0)
+            pdf.set_font("Arial","",9)
             pdf.ln(3)
             for col in df.columns:
-                missing = df[col].isnull().sum()
-                missing_pct = round(missing/len(df)*100, 1)
-                unique = df[col].nunique()
-                pdf.cell(0, 6, f"{col} | Type: {df[col].dtype} | Missing: {missing} ({missing_pct}%) | Unique: {unique}", ln=True)
+                pdf.cell(0,6,f"{col} | {df[col].dtype} | Missing: {df[col].isnull().sum()} | Unique: {df[col].nunique()}",ln=True)
             pdf.ln(5)
-            pdf.set_fill_color(102, 126, 234)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 9, "  Statistical Summary", ln=True, fill=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Arial", "", 9)
+            pdf.set_fill_color(102,126,234)
+            pdf.set_text_color(255,255,255)
+            pdf.set_font("Arial","B",13)
+            pdf.cell(0,9,"  Statistical Summary",ln=True,fill=True)
+            pdf.set_text_color(0,0,0)
+            pdf.set_font("Arial","",9)
             pdf.ln(3)
             for col in num_cols:
-                pdf.cell(0, 6, f"{col} | Mean: {round(df[col].mean(),2)} | Median: {round(df[col].median(),2)} | Std: {round(df[col].std(),2)} | Min: {round(df[col].min(),2)} | Max: {round(df[col].max(),2)}", ln=True)
-            pdf.ln(5)
-            pdf.set_fill_color(102, 126, 234)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 9, "  Outlier Summary", ln=True, fill=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Arial", "", 9)
-            pdf.ln(3)
-            for col in num_cols:
-                Q1 = df[col].quantile(0.25)
-                Q3 = df[col].quantile(0.75)
-                IQR = Q3 - Q1
-                outlier_count = df[(df[col] < Q1-1.5*IQR) | (df[col] > Q3+1.5*IQR)].shape[0]
-                pdf.cell(0, 6, f"{col}: {outlier_count} outliers found", ln=True)
-            pdf.ln(5)
-            pdf.set_fill_color(102, 126, 234)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 9, "  Strong Correlations (>= 0.5)", ln=True, fill=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Arial", "", 9)
-            pdf.ln(3)
-            if len(num_cols) >= 2:
-                corr = df[num_cols].corr()
-                found = False
-                for i in range(len(corr.columns)):
-                    for j in range(i+1, len(corr.columns)):
-                        val = corr.iloc[i,j]
-                        if abs(val) >= 0.5:
-                            rel = "Positive" if val > 0 else "Negative"
-                            pdf.cell(0, 6, f"{corr.columns[i]} and {corr.columns[j]}: {round(val,2)} ({rel})", ln=True)
-                            found = True
-                if not found:
-                    pdf.cell(0, 6, "No strong correlations found", ln=True)
+                pdf.cell(0,6,f"{col} | Mean: {round(df[col].mean(),2)} | Median: {round(df[col].median(),2)} | Std: {round(df[col].std(),2)} | Min: {round(df[col].min(),2)} | Max: {round(df[col].max(),2)}",ln=True)
             pdf_output = bytes(pdf.output())
-            st.download_button(
-                label="📄 Download PDF Report",
-                data=pdf_output,
-                file_name="data_analysis_report.pdf",
-                mime="application/pdf"
-            )
-            st.success("✅ PDF Ready - Click above to download!")
+            st.download_button("📄 Download PDF", data=pdf_output, file_name="report.pdf", mime="application/pdf")
+            st.success("✅ Ready!")
