@@ -1,18 +1,19 @@
-# 📊 AI Data Analyst Pro
+# 📊 AI Data Analyst Pro V2
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas)
 ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly)
+![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-> **Upload any CSV. Get instant analysis. No code required.**
+> **Upload any CSV. Get instant AI-powered analysis. No code required.**
 
 ---
 
 ## 🚀 Live Demo
 
-👉 **[Try it Live Here](https://ai-data-analyst-proo.streamlit.app/**
+👉 **[Try it Live Here](http://localhost:8501/)**
 
 ---
 
@@ -20,19 +21,18 @@
 
 Data analysts spend **60-80% of their time** on data cleaning and exploratory analysis — before any real insights are generated. This is repetitive, time-consuming, and requires technical knowledge that non-technical users simply don't have.
 
-**AI Data Analyst Pro** eliminates this bottleneck entirely.
-
-Upload any structured CSV dataset — the tool automatically handles everything from data quality assessment to missing value treatment, outlier detection, correlation analysis, and interactive visualizations — and exports a professional PDF report, all without writing a single line of code.
+AI Data Analyst Pro V2 eliminates this bottleneck entirely — combining automated EDA with Groq LLaMA 3.3 AI to generate plain-English insights, predictions, and recommendations from any CSV dataset.
 
 ---
 
 ## 🎯 Key Highlights
 
 - **Domain-agnostic** — works on any CSV: HR, finance, e-commerce, healthcare, marketing
-- **End-to-end pipeline** — raw data in, clean insights out
-- **Session-based cleaning** — all changes persist and reflect across every section
-- **Production-ready features** — PDF export, data type conversion, downloadable cleaned CSV
-- **Built for real use** — tested on datasets ranging from 1,000 to 500,000+ rows
+- **AI-powered** — Groq LLaMA 3.3-70B generates insights, risk analysis, and predictions
+- **End-to-end pipeline** — raw data in, clean insights + PDF report out
+- **Natural Language Query** — ask questions about your data in plain English
+- **Session-based cleaning** — all transformations persist across all sections
+- **Professional dark UI** — sidebar navigation, metric cards, interactive charts
 
 ---
 
@@ -44,59 +44,68 @@ Upload any structured CSV dataset — the tool automatically handles everything 
 | Streamlit | Web app framework |
 | Pandas | Data manipulation |
 | Plotly | Interactive visualizations |
+| Groq LLaMA 3.3-70B | AI insights generation |
 | FPDF2 | PDF report generation |
 | Statsmodels | Scatter trendlines |
 
 ---
 
-## ✨ Feature Breakdown
+## ✨ Features
 
 ### 📋 Dataset Overview
-Instant snapshot of the uploaded dataset — row count, column count, duplicate rows, and total missing values displayed as metric cards. Adjustable row preview slider with full dataset expandable view.
+Instant snapshot — row count, column count, duplicates, missing values as metric cards. Adjustable row preview with full dataset expander.
 
 ### 🔍 Schema Analysis
-Detailed column-level breakdown — data type, missing value count, missing percentage, unique value count, and sample value for every column in one clean table. Helps identify data quality issues at a glance.
+Column-level breakdown — data type, missing count, missing %, unique values, sample value for every column.
 
 ### 📊 Statistical Summary
-Full descriptive statistics (mean, std, min, max, percentiles) for all numeric columns. Separate categorical summary with value counts and auto-rendered pie or bar chart based on column cardinality.
+Full descriptive statistics for numeric columns. Categorical summary with value counts and auto-rendered pie or bar chart.
 
 ### 📈 Data Quality Index
-Automated 0-100 quality score calculated from missing value rate and duplicate rate. Color-coded status — Healthy, Needs Attention, or Poor Quality — with a visual breakdown bar chart.
+Automated 0-100 quality score from missing value rate and duplicate rate. Color-coded — Healthy, Needs Attention, Poor Quality.
 
 ### 🧹 Missing Value Handler
-Per-column missing value detection with expandable row preview showing exactly which rows are affected. Handles numeric columns with Mean, Median, or Mode fill — categorical columns with Mode fill or row drop. All changes are applied to session state and reflect immediately across all other sections.
+Per-column detection with row preview. Fill with Mean, Median, Mode or Drop rows. Session-state persistence across all sections.
 
 ### 🔧 Advanced Cleaning
-Three production-level cleaning tools in one section:
-- **Duplicate Remover** — detects and removes duplicate rows with before/after count
-- **Data Type Converter** — convert any column to Numeric, String, DateTime, or Category with error handling
-- **Whitespace Cleaner** — strips leading/trailing spaces from all text columns in one click
+- **Duplicate Remover** — detect and remove with before/after count
+- **Data Type Converter** — Numeric, String, DateTime, Category
+- **Whitespace Cleaner** — strip spaces from all text columns
 
 ### 🎯 Outlier Detection
-IQR-based outlier detection across every numeric column — summary table shows outlier count, lower bound, upper bound, min, and max. Interactive column selector with Box Plot, Histogram, or Violin Plot visualization. Expandable table to inspect exact outlier rows.
+IQR-based detection across all numeric columns. Box Plot, Histogram, Violin Plot. Expandable outlier rows viewer.
 
 ### 🔗 Correlation Matrix
-Interactive Plotly heatmap showing correlation between all numeric columns. Auto-detection and listing of strong correlations (>= 0.5) with positive/negative labeling — actionable insight, not just a chart.
+Interactive Plotly heatmap. Auto-detection of strong correlations >= 0.5 with positive/negative labeling.
 
 ### 🔎 Column Drill Down
-Deep-dive analysis for any single column — type, unique count, missing percentage, full statistical summary for numeric columns, outlier count, and side-by-side distribution and spread charts. Date columns show top frequency breakdown.
+Deep-dive into any column — type, unique count, missing %, stats, outlier count, distribution and spread charts.
 
 ### 📊 Group By Analysis
-Business-level aggregation — select any categorical column as group, any numeric column as value, and any aggregation function (Mean, Sum, Count, Max, Min, Median). Results displayed as sortable table with bar or pie chart. Auto-highlights highest and lowest performing groups.
+Group by any categorical column, aggregate with Mean/Sum/Count/Max/Min/Median. Bar or Pie chart. Auto-highlights highest and lowest groups.
 
 ### 📊 Smart Chart Engine
-Intelligent chart builder that detects column types and renders the most appropriate chart automatically:
-- **Numeric** → Histogram, Box Plot, Violin Plot
-- **Categorical** → Bar Chart, Pie Chart
-- **Date** → Line Chart auto-detected
-- **Two columns** → Scatter with trendline, Area, Box, Violin
+Auto-detects column type and renders best chart. Numeric, Categorical, Date, Two-column analysis with trendlines.
 
 ### 🎯 KPI Dashboard
-Select any numeric column and instantly get five KPI metric cards — Mean, Median, Max, Min, Standard Deviation — with supporting distribution and spread charts.
+Five KPI cards — Mean, Median, Max, Min, Std Dev — with distribution and spread charts.
+
+### 🤖 AI Insights — Powered by Groq LLaMA 3.3
+- **Dataset Summary** — plain English explanation of your data
+- **Key Insights** — 5 structured insights with findings and business impact
+- **Recommendations** — top 3 business recommendations + data quality improvements
+- **Risk Analysis** — data quality risks, business risks, statistical anomalies
+
+### 💬 Ask Your Data
+Natural Language Query — type any question, AI analyzes dataset and answers with supporting evidence and next steps.
+
+### 🔮 AI Predictions
+- **Trend Prediction** — short and medium term trends with confidence assessment
+- **Anomaly Forecast** — predict future anomalies and prevention recommendations
 
 ### ⬇️ Download
-- **Cleaned CSV** — export the fully transformed dataset after all cleaning operations
-- **PDF Report** — auto-generated professional report covering dataset summary, data quality index, schema analysis, statistical summary, outlier summary, and strong correlations
+- Cleaned CSV export after all transformations
+- Auto-generated PDF report — summary, quality index, schema, stats, outliers, correlations
 
 ---
 
@@ -105,10 +114,42 @@ Select any numeric column and instantly get five KPI metric cards — Mean, Medi
 | Dataset | Domain | Size |
 |---|---|---|
 | Financial Loan Data | Banking / Finance | 100,000+ rows |
+| E-Commerce Customer Churn | E-commerce | 2,000+ rows |
 | Insurance Charges | Healthcare | 1,338 rows |
-| Online Retail | E-commerce | 500,000+ rows |
 
 ---
+
+## 📸 Screenshots
+
+### Home Page
+<img width="1360" height="582" alt="image" src="https://github.com/user-attachments/assets/c0eaa082-7cab-4ee3-acbf-b04a31174f22" />
+
+### Overview
+<img width="1366" height="593" alt="image" src="https://github.com/user-attachments/assets/4d28bb44-7b96-46f4-be4d-3c7f2942b4d8" />
+
+
+### Schema Analaysis
+<img width="1356" height="557" alt="image" src="https://github.com/user-attachments/assets/c77cd9ae-fc62-4981-922d-9957880a7e34" />
+
+
+### Stastical Analysis and Data Quality Index
+<img width="1346" height="588" alt="image" src="https://github.com/user-attachments/assets/514ce89c-9d6b-4acd-9ea2-56d3f02e9bc5" />
+<img width="1347" height="572" alt="image" src="https://github.com/user-attachments/assets/4d7b710d-6374-438b-bf68-34d34f0fdd1e" />
+
+
+### Correlation
+<img width="1356" height="608" alt="image" src="https://github.com/user-attachments/assets/85f9ca41-b2b1-4656-a33f-a23cecb7f9b5" />
+
+
+### AI Features
+
+<img width="1360" height="571" alt="image" src="https://github.com/user-attachments/assets/5b45c563-7975-4c83-934f-19e7c6304759" />
+
+### Download Section
+
+<img width="1342" height="604" alt="image" src="https://github.com/user-attachments/assets/217727a5-0fcd-4b70-8b47-c7bf9c5a2c29" />
+
+
 
 ## 📁 Project Structure
 ai-data-analyst-pro/
@@ -117,83 +158,55 @@ ai-data-analyst-pro/
 
 ├── app.py                 # Main Streamlit application
 
-├── requirements.txt       # Python dependencies
+├── requirements.txt       # Dependencies
 
-└── README.md             # Project documentation
+├── .env                   # API keys (not committed)
+
+└── README.md             # Documentation
+
 ---
 
 ## ⚙️ Run Locally
 
 ```bash
-# Clone the repo
 git clone https://github.com/pritamk001/ai-data-analyst-pro.git
 cd ai-data-analyst-pro
-
-# Create virtual environment
 python -m venv venv
 venv\Scripts\activate
-
-# Install dependencies
 pip install -r requirements.txt
+```
 
-# Run the app
+Create `.env` file:
+
+GROQ_API_KEY=your_key_here
+
+```bash
 streamlit run app.py
 ```
 
-Open `http://localhost:8501` in your browser.
-
 ---
 
-## 📸 Screenshots
+## 🔮 V3 Roadmap
 
-### Home Page
-<img width="1361" height="587" alt="image" src="https://github.com/user-attachments/assets/e69237a2-b28f-41b9-9606-7ee5385bd8f1" />
-
-
-### Data Quality Index
-<img width="1352" height="598" alt="image" src="https://github.com/user-attachments/assets/c5230811-2ee4-480d-86e1-46f865aa0e9b" />
-
-
-### Correlation Matrix
-<img width="1049" height="571" alt="image" src="https://github.com/user-attachments/assets/25d39e5f-38b7-48f6-89d6-5b9ed8ad41cd" />
-<img width="1009" height="270" alt="image" src="https://github.com/user-attachments/assets/7439abb6-9d00-4591-a77b-adc3ca547027" />
-
-
-### Smart Chart Engine
-<img width="1002" height="351" alt="image" src="https://github.com/user-attachments/assets/834ebadd-8185-4a3f-9301-a797db4cdf7f" />
-<img width="974" height="436" alt="image" src="https://github.com/user-attachments/assets/6d8c86bf-69d8-4eb2-9c13-b5b146acc9b0" />
-
-
-### KPI Dashboard
-<img width="1000" height="467" alt="image" src="https://github.com/user-attachments/assets/a02ddcc3-6dce-4d31-901f-81e0c14d5550" />
-<img width="978" height="495" alt="image" src="https://github.com/user-attachments/assets/e816ea68-cc1b-49f5-93c9-c7cae390727f" />
-
-
----
-
-## 🔮 V2 Roadmap
-
-- 🤖 **AI Generated Insights** — Gemini API for plain-English data summaries
-- 🔍 **Natural Language Query** — ask questions about your data in plain text
-- 📄 **Enhanced PDF** — charts embedded directly in report
-- ⚡ **Performance optimization** for large datasets
+- 🤖 **AutoML** — select target column, auto-train model, show accuracy
+- 📈 **Time Series Forecast** — Prophet/ARIMA for date columns
+- 📄 **Enhanced PDF** — charts embedded in report
 
 ---
 
 ## 👩‍💻 Developer
 
-**Pritam** — CS Honours Student | Aspiring Data Scientist
-
-Passionate about building tools that bridge the gap between raw data and real decisions.
+**Pritam Kumari** — CS Honours Student | Aspiring Data Scientist
 
 - 🔗 [GitHub](https://github.com/pritamk001)
-- 💼 LinkedIn — www.linkedin.com/in/pritam-351003301
+- 💼 [LinkedIn](www.linkedin.com/in/pritam-351003301)
+
 ---
 
 ## ⭐ Star This Repo
 
-If this tool helped you, please consider starring the repository — it helps others find it!
+If this tool helped you, please star the repository!
 
 ---
 
-*Built with Python, Streamlit, and Pandas*
+*Built with Python, Streamlit, Pandas, and Groq AI*
