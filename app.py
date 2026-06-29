@@ -887,8 +887,7 @@ Format:
 3. [action]
 No italic formatting."""
                     st.markdown(groq_response(prompt))
-            else:
-                    st.warning("Enter a question first")
+            
 
     # ── NLQ ───────────────────────────────────────────
     elif section == "nlq":
