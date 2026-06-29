@@ -178,8 +178,6 @@ pip install -r requirements.txt
 
 Create `.env` file:
 
-GROQ_API_KEY=your_key_here
-
 ```bash
 streamlit run app.py
 ```
